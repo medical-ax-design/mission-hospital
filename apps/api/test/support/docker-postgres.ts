@@ -13,6 +13,13 @@ export type DockerPostgres = {
 async function waitUntilReady(containerName: string): Promise<void> {
   for (let attempt = 0; attempt < 40; attempt += 1) {
     try {
+      const logs = await execFile('docker', ['logs', containerName]);
+      const initializationComplete = `${logs.stdout}\n${logs.stderr}`.includes(
+        'PostgreSQL init process complete; ready for start up.',
+      );
+      if (!initializationComplete) {
+        throw new Error('PostgreSQL initialization is still running.');
+      }
       await execFile('docker', [
         'exec',
         containerName,
