@@ -475,7 +475,7 @@ export interface CatalogRepository {
 }
 ```
 
-- [ ] **Step 1: 관리자 생성과 코드 중복 실패 테스트 작성**
+- [x] **Step 1: 관리자 생성과 코드 중복 실패 테스트 작성**
 
 테스트 안에 배열 기반 `InMemoryCatalogRepository`를 구현해 실제 서비스 규칙을 검증한다.
 
@@ -511,12 +511,12 @@ it('STAFF의 항목 생성을 거부한다', async () => {
 });
 ```
 
-- [ ] **Step 2: 실패 확인**
+- [x] **Step 2: 실패 확인**
 
 Run: `npm test -- apps/api/src/catalog/catalog.service.test.ts`
 Expected: FAIL because `CatalogService` does not exist
 
-- [ ] **Step 3: 최소 서비스 구현**
+- [x] **Step 3: 최소 서비스 구현**
 
 `ADMIN` 역할을 확인하고, 값이 있는 `externalCode`만 중복 조회하며, 저장소 생성 결과를 반환한다. 검색은 `ADMIN`과 `STAFF`만 허용하고 trim한 검색어와 최대 100의 limit을 저장소에 전달한다.
 
@@ -567,12 +567,12 @@ export class CatalogService {
 }
 ```
 
-- [ ] **Step 4: 서비스 검증**
+- [x] **Step 4: 서비스 검증**
 
 Run: `npm test -- apps/api/src/catalog/catalog.service.test.ts`
 Expected: 3 tests PASS
 
-- [ ] **Step 5: 커밋**
+- [x] **Step 5: 커밋**
 
 ```bash
 git add apps/api/src/catalog
