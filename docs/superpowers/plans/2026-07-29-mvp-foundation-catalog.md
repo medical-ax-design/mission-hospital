@@ -579,7 +579,176 @@ git add apps/api/src/catalog
 git commit -m "feat(api): add procedure catalog service"
 ```
 
-### Task 5: 카탈로그 REST API와 공통 오류 응답
+### Task 5: 요청별 RLS 트랜잭션과 Drizzle 카탈로그 저장소
+
+**Files:**
+- Create: `apps/api/src/database/database.service.ts`
+- Create: `apps/api/src/catalog/drizzle-catalog.repository.ts`
+- Create: `apps/api/test/catalog-repository.integration.test.ts`
+
+**Interfaces:**
+- Consumes: `ActorContext`, `CatalogRepository`, `procedureCatalog`
+- Produces: `DatabaseService.withActor(actor, work)`, `DrizzleCatalogRepository`
+
+- [x] **Step 1: PostgreSQL 통합 테스트 작성**
+
+테스트는 PostgreSQL 17 컨테이너를 시작하고 migration을 적용한 뒤, 두 조직과 두 ADMIN 프로필을 seed한다. 실제 `DatabaseService`와 `DrizzleCatalogRepository`를 사용한다.
+
+```ts
+it('같은 조직에서는 생성한 항목을 검색한다', async () => {
+  const created = await database.withActor(adminA, async (db) => {
+    const repository = new DrizzleCatalogRepository(db);
+    return repository.create(firstInput, adminA);
+  });
+
+  const found = await database.withActor(adminA, async (db) => {
+    const repository = new DrizzleCatalogRepository(db);
+    return repository.search(adminA.organizationId, '대장', 20);
+  });
+
+  expect(found.map((procedure) => procedure.id)).toEqual([created.id]);
+});
+
+it('다른 조직에서는 생성한 항목을 조회하지 못한다', async () => {
+  await database.withActor(adminA, async (db) => {
+    const repository = new DrizzleCatalogRepository(db);
+    await repository.create(firstInput, adminA);
+  });
+
+  const found = await database.withActor(adminB, async (db) => {
+    const repository = new DrizzleCatalogRepository(db);
+    return repository.search(adminB.organizationId, '대장', 20);
+  });
+
+  expect(found).toEqual([]);
+});
+```
+
+- [x] **Step 2: 실패 확인**
+
+Run: `npm test -- apps/api/test/catalog-repository.integration.test.ts`
+Expected: FAIL because `DatabaseService` and `DrizzleCatalogRepository` do not exist
+
+- [x] **Step 3: 요청별 트랜잭션 구현**
+
+```ts
+export type ReadyOnDatabase = Pick<
+  PostgresJsDatabase<typeof schema>,
+  'insert' | 'select'
+>;
+
+export class DatabaseService {
+  private readonly sql: Sql;
+  private readonly database: PostgresJsDatabase<typeof schema>;
+
+  constructor(databaseUrl: string) {
+    this.sql = postgres(databaseUrl, { max: 10 });
+    this.database = drizzle(this.sql, { schema });
+  }
+
+  async withActor<T>(
+    actor: ActorContext,
+    work: (db: ReadyOnDatabase) => Promise<T>,
+  ): Promise<T> {
+    return this.database.transaction(async (transaction) => {
+      await transaction.execute(sql`
+        select set_config(
+          'app.organization_id',
+          ${actor.organizationId},
+          true
+        )
+      `);
+      await transaction.execute(sql`
+        select set_config('app.actor_id', ${actor.id}, true)
+      `);
+      return work(transaction);
+    });
+  }
+
+  async close(): Promise<void> {
+    await this.sql.end();
+  }
+}
+```
+
+- [x] **Step 4: Drizzle 저장소 구현**
+
+```ts
+export class DrizzleCatalogRepository implements CatalogRepository {
+  constructor(private readonly db: ReadyOnDatabase) {}
+
+  async findByExternalCode(
+    organizationId: string,
+    externalCode: string,
+  ): Promise<Procedure | null> {
+    const [row] = await this.db
+      .select()
+      .from(procedureCatalog)
+      .where(
+        and(
+          eq(procedureCatalog.organizationId, organizationId),
+          eq(procedureCatalog.externalCode, externalCode),
+        ),
+      )
+      .limit(1);
+    return row ? toProcedure(row) : null;
+  }
+
+  async create(input: CreateProcedureInput, actor: ActorContext) {
+    const [row] = await this.db
+      .insert(procedureCatalog)
+      .values({
+        organizationId: actor.organizationId,
+        procedureType: input.procedureType,
+        name: input.name,
+        normalizedName: input.name.toLocaleLowerCase('ko-KR'),
+        externalCode: input.externalCode,
+        department: input.department,
+        description: input.description,
+        createdBy: actor.id,
+        updatedBy: actor.id,
+      })
+      .returning();
+    if (!row) throw new Error('Procedure insert returned no row.');
+    return toProcedure(row);
+  }
+
+  async search(organizationId: string, query: string, limit: number) {
+    const pattern = `%${query.toLocaleLowerCase('ko-KR')}%`;
+    const rows = await this.db
+      .select()
+      .from(procedureCatalog)
+      .where(
+        and(
+          eq(procedureCatalog.organizationId, organizationId),
+          eq(procedureCatalog.isActive, true),
+          or(
+            ilike(procedureCatalog.normalizedName, pattern),
+            ilike(procedureCatalog.externalCode, pattern),
+          ),
+        ),
+      )
+      .orderBy(asc(procedureCatalog.name))
+      .limit(limit);
+    return rows.map(toProcedure);
+  }
+}
+```
+
+- [x] **Step 5: 저장소 검증과 커밋**
+
+Run: `npm test -- apps/api/test/catalog-repository.integration.test.ts`
+Expected: 2 tests PASS
+
+Run: `npm run typecheck --workspace @ready-on/api`
+Expected: exit code 0
+
+```bash
+git add apps/api package-lock.json
+git commit -m "feat(api): persist catalog with RLS transactions"
+```
+
+### Task 6: 카탈로그 REST API와 공통 오류 응답
 
 **Files:**
 - Create: `apps/api/src/auth/actor-context.ts`
@@ -779,7 +948,7 @@ git add apps/api/src apps/api/test
 git commit -m "feat(api): expose procedure catalog endpoints"
 ```
 
-### Task 6: 의료진 카탈로그 웹 화면
+### Task 7: 의료진 카탈로그 웹 화면
 
 **Files:**
 - Create: `apps/web/package.json`
@@ -994,7 +1163,7 @@ git add apps/web
 git commit -m "feat(web): add staff procedure catalog"
 ```
 
-### Task 7: 전체 검증과 실행 문서
+### Task 8: 전체 검증과 실행 문서
 
 **Files:**
 - Create: `.env.example`
