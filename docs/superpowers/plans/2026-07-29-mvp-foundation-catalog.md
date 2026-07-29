@@ -319,7 +319,7 @@ git commit -m "feat(api): add health endpoints"
 - Consumes: UUID 내부 식별자, nullable 외부 코드, 조직 격리 규칙
 - Produces: `organizations`, `profiles`, `procedureCatalog` Drizzle tables
 
-- [ ] **Step 1: Drizzle 스키마 실패 테스트 작성**
+- [x] **Step 1: Drizzle 스키마 실패 테스트 작성**
 
 ```ts
 import { getTableConfig } from 'drizzle-orm/pg-core';
@@ -340,12 +340,12 @@ describe('procedureCatalog schema', () => {
 });
 ```
 
-- [ ] **Step 2: 실패 확인**
+- [x] **Step 2: 실패 확인**
 
 Run: `npm test -- apps/api/src/database/schema.test.ts`
 Expected: FAIL because `./schema` does not exist
 
-- [ ] **Step 3: SQL migration과 Drizzle 모델 구현**
+- [x] **Step 3: SQL migration과 Drizzle 모델 구현**
 
 Migration의 핵심 SQL:
 
@@ -427,12 +427,12 @@ export const procedureCatalog = pgTable('procedure_catalog', {
 });
 ```
 
-- [ ] **Step 4: 스키마 검증**
+- [x] **Step 4: 스키마 검증**
 
 Run: `npm test -- apps/api/src/database/schema.test.ts && npm run typecheck --workspace @ready-on/api`
 Expected: schema test PASS, typecheck exit code 0
 
-- [ ] **Step 5: 커밋**
+- [x] **Step 5: 커밋**
 
 ```bash
 git add supabase/migrations apps/api/src/database
