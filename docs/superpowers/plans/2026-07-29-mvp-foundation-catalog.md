@@ -221,7 +221,7 @@ git commit -m "build: initialize TypeScript workspaces and contracts"
 - Consumes: 없음
 - Produces: `GET /health/live`, `GET /health/ready`, `createApp()`
 
-- [ ] **Step 1: health E2E 실패 테스트 작성**
+- [x] **Step 1: health E2E 실패 테스트 작성**
 
 ```ts
 import request from 'supertest';
@@ -250,12 +250,12 @@ describe('health', () => {
 });
 ```
 
-- [ ] **Step 2: 실패 확인**
+- [x] **Step 2: 실패 확인**
 
 Run: `npm test -- apps/api/test/health.e2e.test.ts`
 Expected: FAIL because `../src/main` does not exist
 
-- [ ] **Step 3: 최소 NestJS 앱 구현**
+- [x] **Step 3: 최소 NestJS 앱 구현**
 
 `createApp()`은 테스트가 포트를 열지 않고 앱 인스턴스를 받을 수 있도록 한다. 직접 실행일 때만 `PORT` 기본값 `3001`로 listen한다.
 
@@ -296,12 +296,12 @@ export class HealthController {
 }
 ```
 
-- [ ] **Step 4: API 검증**
+- [x] **Step 4: API 검증**
 
 Run: `npm test -- apps/api/test/health.e2e.test.ts && npm run typecheck --workspace @ready-on/api`
 Expected: health test PASS, typecheck exit code 0
 
-- [ ] **Step 5: 커밋**
+- [x] **Step 5: 커밋**
 
 ```bash
 git add apps/api
