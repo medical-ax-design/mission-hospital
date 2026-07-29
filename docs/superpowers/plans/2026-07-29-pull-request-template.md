@@ -147,7 +147,7 @@ git push
 - Consumes: 공용 PR 템플릿 섹션, `feat/mvp-foundation` 최신 커밋과 검증 결과
 - Produces: GitHub Draft Pull Request
 
-- [ ] **Step 1: 최신 브랜치 검증**
+- [x] **Step 1: 최신 브랜치 검증**
 
 Run: `git status --short`
 Expected: no output
@@ -158,7 +158,7 @@ Expected: two hashes are identical
 Run: `gh pr list --head feat/mvp-foundation --state all`
 Expected: no existing PR
 
-- [ ] **Step 2: Draft PR 생성**
+- [x] **Step 2: Draft PR 생성**
 
 제목:
 
@@ -190,7 +190,7 @@ gh pr create \
 
 Expected: GitHub PR URL
 
-- [ ] **Step 3: 생성 결과 검증**
+- [x] **Step 3: 생성 결과 검증**
 
 Run: `gh pr view --json number,title,state,isDraft,url,baseRefName,headRefName`
 
