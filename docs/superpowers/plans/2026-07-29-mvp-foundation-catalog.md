@@ -55,7 +55,7 @@ supabase/
 - Create: `package.json`
 - Create: `package-lock.json`
 - Create: `tsconfig.base.json`
-- Create: `vitest.workspace.ts`
+- Create: `vitest.config.ts`
 - Create: `packages/contracts/package.json`
 - Create: `packages/contracts/tsconfig.json`
 - Create: `packages/contracts/src/catalog.test.ts`
@@ -67,7 +67,7 @@ supabase/
 - Consumes: `POST /api/v1/procedures` 요청 형식과 `Procedure` 응답 형식
 - Produces: `createProcedureSchema`, `procedureSchema`, `CreateProcedureInput`, `Procedure`
 
-- [ ] **Step 1: 설정 파일과 테스트 실행기만 구성**
+- [x] **Step 1: 설정 파일과 테스트 실행기만 구성**
 
 루트 npm workspace에 `apps/*`, `packages/*`를 등록한다.
 
@@ -125,7 +125,7 @@ supabase/
 Run: `npm install`
 Expected: `package-lock.json` 생성, exit code 0
 
-- [ ] **Step 2: 공유 계약의 실패 테스트 작성**
+- [x] **Step 2: 공유 계약의 실패 테스트 작성**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -157,12 +157,12 @@ describe('createProcedureSchema', () => {
 });
 ```
 
-- [ ] **Step 3: 실패 확인**
+- [x] **Step 3: 실패 확인**
 
 Run: `npm test -- packages/contracts/src/catalog.test.ts`
 Expected: FAIL because `./catalog` does not exist
 
-- [ ] **Step 4: 최소 계약 구현**
+- [x] **Step 4: 최소 계약 구현**
 
 ```ts
 import { z } from 'zod';
@@ -195,12 +195,12 @@ export type CreateProcedureInput = z.infer<typeof createProcedureSchema>;
 export type Procedure = z.infer<typeof procedureSchema>;
 ```
 
-- [ ] **Step 5: 계약 검증**
+- [x] **Step 5: 계약 검증**
 
 Run: `npm test -- packages/contracts/src/catalog.test.ts && npm run typecheck`
 Expected: 2 tests PASS, typecheck exit code 0
 
-- [ ] **Step 6: 커밋**
+- [x] **Step 6: 커밋**
 
 ```bash
 git add package.json package-lock.json tsconfig.base.json vitest.workspace.ts packages/contracts .gitignore
