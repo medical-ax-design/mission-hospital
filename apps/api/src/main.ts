@@ -3,9 +3,14 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module.js';
 
 export async function createApp() {
-  return NestFactory.create(AppModule, {
+  const app = await NestFactory.create(AppModule, {
     logger: false,
   });
+  app.enableCors({
+    origin: process.env.WEB_ORIGIN ?? 'http://localhost:3000',
+  });
+
+  return app;
 }
 
 if (process.env.NODE_ENV !== 'test') {
