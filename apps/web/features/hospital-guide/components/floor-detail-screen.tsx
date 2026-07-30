@@ -67,6 +67,9 @@ export function FloorDetailScreen({
           <ul>
             {floor.places.map((place) => (
               <li
+                aria-current={
+                  place.id === selectedPlaceId ? 'location' : undefined
+                }
                 className={
                   place.id === selectedPlaceId
                     ? 'floor-place floor-place--selected'

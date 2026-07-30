@@ -8,8 +8,7 @@ import {
 } from '@ready-on/contracts';
 import request from 'supertest';
 import {
-  afterAll,
-  beforeAll,
+  afterEach,
   beforeEach,
   describe,
   expect,
@@ -20,12 +19,9 @@ import { createApp } from '../src/main.js';
 describe('restriction guidance API', () => {
   let app: INestApplication;
 
-  beforeAll(async () => {
+  beforeEach(async () => {
     app = await createApp();
     await app.init();
-  });
-
-  beforeEach(async () => {
     await request(app.getHttpServer())
       .post(
         '/caregiver-journeys/demo/scenarios/morning-colonoscopy/select',
@@ -33,7 +29,7 @@ describe('restriction guidance API', () => {
       .expect(201);
   });
 
-  afterAll(async () => {
+  afterEach(async () => {
     await app.close();
   });
 

@@ -223,6 +223,10 @@ describe('CaregiverJourneyApp', () => {
       await screen.findByRole('heading', { name: /수술 준비 중/ }),
     ).toBeInTheDocument();
     expect(screen.getByText('입원 서류 발급')).toBeInTheDocument();
+    expect(
+      screen.getByText('공식 처리 방법을 확인하세요'),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('약 15분')).not.toBeInTheDocument();
     expect(screen.getByText('다음 안내')).toBeInTheDocument();
   });
 

@@ -52,7 +52,27 @@ Base URL 예시: `http://localhost:3001`
 질문 검색어는 공백 제거 후 1자 이상 80자 이하다. 존재하지 않는
 질문을 완료하거나 삭제하면 `404`를 반환한다.
 
-## 4. 오류
+## 4. 병원 이용 안내
+
+| Method | Path | 응답 |
+|---|---|---|
+| `GET` | `/hospital-guide/catalog` | `HospitalGuideCatalogResponse` |
+| `GET` | `/hospital-guide/purposes/search?q={query}` | `HospitalGuidePurposeResponse` |
+
+카탈로그는 본관·별관·암병원·양성자치료센터의 공개 층 정보,
+공식 지도 URL, 확인된 시설명과 출처를 반환한다. 검색어는 공백 제거
+후 1자 이상 80자 이하이며, 현재 `서류 발급` 목적과 검색어를
+지원한다. 일치하는 목적이 없으면 `404`를 반환한다.
+
+경로 상태는 다음 세 값으로 분리한다.
+
+- `VERIFIED`: `HOSPITAL_VERIFIED` 출처와 검증된 층별 복도 좌표가
+  있는 경우에만 선을 표시한다.
+- `MAP_ONLY`: 공식 지도와 시설 위치만 표시하며 경로선을 만들지
+  않는다.
+- `UNAVAILABLE`: 지도나 위치를 추측하지 않고 문의 안내를 표시한다.
+
+## 5. 오류
 
 NestJS 기본 오류 본문을 사용한다. Web은 상태코드를
 `CaregiverJourneyApiError`로 변환하고 사용자에게 내부 오류나

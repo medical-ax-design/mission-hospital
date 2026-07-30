@@ -178,26 +178,43 @@ function VerifiedNavigation({
                         points={pointsToPolyline(step.points)}
                       />
                       {firstPoint && (
-                        <g
-                          className="verified-route-user"
-                          data-testid="route-user-marker"
-                        >
-                          <circle r="3.2" />
-                          <circle
-                            className="verified-route-user__head"
-                            cy="-0.9"
-                            r="0.8"
-                          />
-                          <path
-                            className="verified-route-user__body"
-                            d="M -1.4 1.7 C -1.1 0.3 1.1 0.3 1.4 1.7 Z"
-                          />
-                          <animateMotion
-                            dur="5s"
-                            path={pointsToMotionPath(step.points)}
-                            repeatCount="indefinite"
-                          />
-                        </g>
+                        <>
+                          <g
+                            className="verified-route-user verified-route-user--animated"
+                            data-testid="route-user-marker"
+                          >
+                            <circle r="3.2" />
+                            <circle
+                              className="verified-route-user__head"
+                              cy="-0.9"
+                              r="0.8"
+                            />
+                            <path
+                              className="verified-route-user__body"
+                              d="M -1.4 1.7 C -1.1 0.3 1.1 0.3 1.4 1.7 Z"
+                            />
+                            <animateMotion
+                              dur="5s"
+                              path={pointsToMotionPath(step.points)}
+                              repeatCount="indefinite"
+                            />
+                          </g>
+                          <g
+                            className="verified-route-user verified-route-user--static"
+                            transform={`translate(${firstPoint[0]} ${firstPoint[1]})`}
+                          >
+                            <circle r="3.2" />
+                            <circle
+                              className="verified-route-user__head"
+                              cy="-0.9"
+                              r="0.8"
+                            />
+                            <path
+                              className="verified-route-user__body"
+                              d="M -1.4 1.7 C -1.1 0.3 1.1 0.3 1.4 1.7 Z"
+                            />
+                          </g>
+                        </>
                       )}
                     </svg>
                   </div>

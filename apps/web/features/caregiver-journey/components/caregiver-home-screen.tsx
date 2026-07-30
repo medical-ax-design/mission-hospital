@@ -108,14 +108,8 @@ export function CaregiverHomeScreen({
               <p className="eyebrow">지금 할 일</p>
               <h2 id="caregiver-task">보호자 업무</h2>
             </div>
-            {journey.task && (
-              <span
-                className={taskCompleted ? 'done-badge' : 'time-badge'}
-              >
-                {taskCompleted
-                  ? '완료'
-                  : `약 ${journey.task.estimatedMinutes}분`}
-              </span>
+            {taskCompleted && (
+              <span className="done-badge">완료</span>
             )}
           </div>
           {journey.task ? (
@@ -132,7 +126,7 @@ export function CaregiverHomeScreen({
                 <small>
                   {taskCompleted
                     ? '업무를 완료했습니다'
-                    : `${journey.guide?.destination ?? '안내 데스크 확인 필요'}`}
+                    : '공식 처리 방법을 확인하세요'}
                 </small>
               </span>
               <span aria-hidden="true">›</span>

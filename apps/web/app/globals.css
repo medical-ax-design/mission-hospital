@@ -700,7 +700,7 @@ button:focus-visible {
 }
 
 .floor-selector__buttons button {
-  min-height: 43px;
+  min-height: 48px;
   padding: 6px;
   border: 1px solid var(--line);
   border-radius: 11px;
@@ -847,6 +847,10 @@ button:focus-visible {
 .verified-route-user__head,
 .verified-route-user__body {
   fill: #e62525;
+}
+
+.verified-route-user--static {
+  display: none;
 }
 
 .verified-floor-route figcaption {
@@ -1776,6 +1780,7 @@ h2 {
   font-weight: 800;
 }
 
+.directory-search input:focus-visible,
 .restriction-search input:focus-visible,
 .official-source:focus-visible {
   outline: 3px solid #ffbf47;
@@ -1863,5 +1868,13 @@ h2 {
 @media (prefers-reduced-motion: reduce) {
   .loading-mark {
     animation: none;
+  }
+
+  .verified-route-user--animated {
+    display: none;
+  }
+
+  .verified-route-user--static {
+    display: block;
   }
 }
