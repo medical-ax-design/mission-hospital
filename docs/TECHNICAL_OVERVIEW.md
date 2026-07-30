@@ -151,6 +151,10 @@ Vercel Web, OCI API, Supabase PostgreSQL은 목표 인프라 구성이다.
 배포 전 환경변수, CORS, 비밀정보, migration 적용과 health check를
 환경별로 검증해야 한다.
 
+루트 `vercel.json`은 모노레포 전체를 설치한 뒤
+`@ready-on/web`만 빌드한다. API 주소는 저장소에 기록하지 않고
+Vercel의 `NEXT_PUBLIC_API_BASE_URL` 환경변수로 주입한다.
+
 다음 항목은 병원과의 데이터·보안·운영 합의 후 별도 구현한다.
 
 - 환자·보호자 인증과 동의
