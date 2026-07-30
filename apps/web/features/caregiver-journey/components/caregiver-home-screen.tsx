@@ -4,6 +4,10 @@ import type {
 } from '@ready-on/contracts/caregiver-journey';
 import type { RestrictionGuidance } from '@ready-on/contracts/restriction-guidance';
 import { formatHospitalTime } from '../format-hospital-time';
+import {
+  BottomNavigation,
+  type RootTab,
+} from './bottom-navigation';
 import { MobileShell } from './mobile-shell';
 
 interface CaregiverHomeScreenProps {
@@ -13,8 +17,8 @@ interface CaregiverHomeScreenProps {
   demoMode: boolean;
   onOpenProgress: () => void;
   onOpenTask: () => void;
-  onOpenSummary: () => void;
   onOpenRestrictions: () => void;
+  onSelectTab: (tab: RootTab) => void;
   onSelectScenario: (scenarioId: DemoScenarioId) => void;
   onAdvance: () => void;
 }
@@ -26,8 +30,8 @@ export function CaregiverHomeScreen({
   demoMode,
   onOpenProgress,
   onOpenTask,
-  onOpenSummary,
   onOpenRestrictions,
+  onSelectTab,
   onSelectScenario,
   onAdvance,
 }: CaregiverHomeScreenProps) {
@@ -35,7 +39,7 @@ export function CaregiverHomeScreen({
 
   return (
     <MobileShell compactHeader>
-      <main className="screen screen--home">
+      <main className="screen screen--home screen--with-navigation">
         <div className="home-intro">
           <div>
             <p className="eyebrow">안녕하세요, 보호자님</p>
@@ -156,21 +160,6 @@ export function CaregiverHomeScreen({
           </div>
         </section>
 
-        <button
-          className="summary-entry"
-          onClick={onOpenSummary}
-          type="button"
-        >
-          <span className="summary-entry__icon" aria-hidden="true">
-            말
-          </span>
-          <span>
-            <small>의료진이 확인한 내용</small>
-            <strong>진료 내용 정리</strong>
-          </span>
-          <span aria-hidden="true">›</span>
-        </button>
-
         {demoMode && (
           <aside className="demo-controls" aria-label="발표자 도구">
             <div>
@@ -207,6 +196,7 @@ export function CaregiverHomeScreen({
           상태 정보는 병원 시스템에서 확인된 내용만 표시합니다.
         </p>
       </main>
+      <BottomNavigation current="home" onSelect={onSelectTab} />
     </MobileShell>
   );
 }

@@ -49,9 +49,38 @@ const unlinkedJourney: CaregiverJourney = {
     ],
     fallback: '발급되지 않으면 옆 제증명 창구를 방문하세요.',
   },
-  summary: {
-    status: 'UNAVAILABLE',
-  },
+  schedules: [
+    {
+      id: 'schedule-admission',
+      type: 'ADMISSION',
+      title: '입원 수속',
+      startsAt: '2026-07-30T00:00:00.000Z',
+      building: 'MAIN',
+      floor: '1F',
+      location: '입원수속 창구',
+      preparation: ['보호자 신분증을 준비해 주세요.'],
+    },
+    {
+      id: 'schedule-surgery',
+      type: 'SURGERY',
+      title: '위암 수술',
+      startsAt: '2026-07-30T01:30:00.000Z',
+      building: 'CANCER',
+      floor: '3F',
+      location: '수술환자가족대기실',
+      preparation: ['보호자 대기 장소를 확인해 주세요.'],
+    },
+    {
+      id: 'schedule-follow-up',
+      type: 'APPOINTMENT',
+      title: '퇴원 후 외래 진료',
+      startsAt: '2026-08-07T01:00:00.000Z',
+      building: 'CANCER',
+      floor: '1F',
+      location: '위/췌담도센터',
+      preparation: ['퇴원 안내문을 준비해 주세요.'],
+    },
+  ],
 };
 
 const colonoscopyJourney: CaregiverJourney = {
@@ -376,7 +405,31 @@ describe('CaregiverJourneyApp', () => {
     ).toBeInTheDocument();
   });
 
-  it('의료진 확인 전에는 요약을 생성하지 않는다', async () => {
+  it('세 개의 주요 탭을 제공한다', async () => {
+    const api = createFakeApi({
+      getDemo: vi.fn().mockResolvedValue({
+        ...unlinkedJourney,
+        linked: true,
+      }),
+    });
+
+    render(<CaregiverJourneyApp api={api} />);
+
+    expect(
+      await screen.findByRole('navigation', { name: '주요 메뉴' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: '홈' }),
+    ).toHaveAttribute('aria-current', 'page');
+    expect(
+      screen.getByRole('button', { name: '일정' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: '이용 안내' }),
+    ).toBeInTheDocument();
+  });
+
+  it('일정 탭에서 환자 일정 날짜와 빈 날짜를 확인한다', async () => {
     const user = userEvent.setup();
     const api = createFakeApi({
       getDemo: vi.fn().mockResolvedValue({
@@ -387,78 +440,32 @@ describe('CaregiverJourneyApp', () => {
 
     render(<CaregiverJourneyApp api={api} />);
 
+    await user.click(await screen.findByRole('button', { name: '일정' }));
+
+    expect(
+      screen.getByRole('heading', { name: '환자 일정' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('2026년 7월')).toBeInTheDocument();
+
     await user.click(
-      await screen.findByRole('button', {
-        name: /진료 내용 정리/,
+      screen.getByRole('button', {
+        name: '30일, 김정우 환자 일정 2개',
       }),
     );
 
+    expect(screen.getByText('입원 수속')).toBeInTheDocument();
+    expect(screen.getByText('위암 수술')).toBeInTheDocument();
     expect(
-      screen.getByRole('heading', {
-        name: '의료진 설명을 확인 중입니다',
-      }),
-    ).toBeInTheDocument();
-  });
-
-  it('확인된 설명을 가족 공유 미리보기로 보여준다', async () => {
-    const user = userEvent.setup();
-    const confirmedJourney: CaregiverJourney = {
-      ...unlinkedJourney,
-      linked: true,
-      treatment: {
-        ...unlinkedJourney.treatment,
-        stage: 'RECOVERY',
-        label: '회복실 이동',
-      },
-      summary: {
-        status: 'CONFIRMED',
-        confirmedAt: '2026-07-30T06:35:00.000Z',
-        currentStatus: '수술 종료 · 회복실에서 상태 확인 중',
-        items: [
-          '예정된 수술이 종료되었습니다.',
-          '환자는 회복실에서 상태를 확인하고 있습니다.',
-          '음식물 제공은 의료진의 다음 안내를 기다려 주세요.',
-        ],
-        nextSchedule: '회복실 확인 후 병실 이동 예정',
-      },
-    };
-    const api = createFakeApi({
-      getDemo: vi.fn().mockResolvedValue(confirmedJourney),
-    });
-
-    render(<CaregiverJourneyApp api={api} />);
-
-    await user.click(
-      await screen.findByRole('button', {
-        name: /진료 내용 정리/,
-      }),
-    );
-
-    expect(
-      screen.getByText('수술 종료 · 회복실에서 상태 확인 중'),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText('예정된 수술이 종료되었습니다.'),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText('회복실 확인 후 병실 이동 예정'),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        '의료진 확인 시각 · 오후 3:35 · 발표용 가상 정보',
-      ),
+      screen.getByText('수술환자가족대기실'),
     ).toBeInTheDocument();
 
     await user.click(
-      screen.getByRole('button', { name: '가족에게 공유' }),
+      screen.getByRole('button', { name: '29일, 일정 없음' }),
     );
 
     expect(
-      screen.getByRole('dialog', { name: '가상 공유 미리보기' }),
+      screen.getByText('등록된 병원 일정이 없습니다'),
     ).toBeInTheDocument();
-    expect(screen.getByText('수술 종료')).toBeInTheDocument();
-    expect(screen.getByText('회복실 확인 중')).toBeInTheDocument();
-    expect(screen.getByText('병실 이동 예정')).toBeInTheDocument();
   });
 
   it('대장내시경 여정 홈에서 현재 제한 안내를 연다', async () => {
@@ -644,6 +651,76 @@ describe('CaregiverJourneyApp', () => {
       }),
     ).toBeInTheDocument();
     expect(searchRestrictions).toHaveBeenCalledTimes(2);
+  });
+
+  it('이용 안내에서 목적 기반 길찾기와 검사 준비 안내를 구분한다', async () => {
+    const user = userEvent.setup();
+    const api = createFakeApi({
+      getDemo: vi.fn().mockResolvedValue({
+        ...unlinkedJourney,
+        linked: true,
+      }),
+    });
+
+    render(<CaregiverJourneyApp api={api} />);
+
+    await user.click(
+      await screen.findByRole('button', { name: '이용 안내' }),
+    );
+
+    expect(
+      screen.getByRole('heading', { name: '병원 이용 안내' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /업무·길찾기/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('검사 준비·주의사항'),
+    ).toBeInTheDocument();
+  });
+
+  it('현재 위치와 이동 수단을 선택해 공식 지도 위 경로를 단계별로 본다', async () => {
+    const user = userEvent.setup();
+    const api = createFakeApi({
+      getDemo: vi.fn().mockResolvedValue({
+        ...unlinkedJourney,
+        linked: true,
+      }),
+    });
+
+    render(<CaregiverJourneyApp api={api} />);
+
+    await user.click(
+      await screen.findByRole('button', { name: '이용 안내' }),
+    );
+    await user.click(
+      screen.getByRole('button', { name: /업무·길찾기/ }),
+    );
+
+    expect(
+      screen.getByRole('heading', { name: '병원 안 길찾기' }),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText('현재 건물')).toHaveValue('MAIN');
+    expect(screen.getByText(/암병원 3F/)).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole('radio', { name: /엘리베이터/ }),
+    );
+    await user.click(
+      screen.getByRole('button', { name: '길찾기 시작' }),
+    );
+
+    expect(
+      screen.getByRole('img', { name: /삼성서울병원 공식/ }),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId('route-line')).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole('button', { name: '다음 안내' }),
+    );
+    expect(
+      screen.getByRole('heading', { name: /연결통로|엘리베이터/ }),
+    ).toBeInTheDocument();
   });
 });
 

@@ -37,16 +37,26 @@ Annual Report는 전체 외래·입원, 진료과별 환자, 성별·연령, 병
 
 ## 4. 원내 위치와 모바일 이용 안내
 
+- [삼성서울병원 원내 위치 안내](https://www.samsunghospital.com/home/info/guide/hmain.do)
+- [본관 1층 공식 안내](https://www.samsunghospital.com/_newhome/info/guide/hospital/1F.html)
+- [별관 1층 공식 안내](https://www.samsunghospital.com/_newhome/info/guide/etc/1F.html)
+- [암병원 1층 공식 안내](https://www.samsunghospital.com/_newhome/info/guide/cancer/1F.html)
+- [암병원 3층 공식 안내](https://www.samsunghospital.com/_newhome/info/guide/cancer/3F.html)
 - [삼성서울병원 위치안내도 PDF](https://www.samsunghospital.com/_newhome/cancer/guide/samsunghospital_cancer_map_kr.pdf)
 - [삼성서울병원 모바일 앱 사용 안내 PDF](https://samsunghospital.com/_newmweb/info/guide/web_app_guide.pdf)
 - [삼성서울병원 리모델링으로 인한 변경 안내](https://www.samsunghospital.com/home/info/noticeView.do?SEQ=2364)
 
-위치안내도에는 본관·별관·암병원의 층별 주요 시설, 엘리베이터와
-연결통로가 표시되어 있다. 모바일 앱 안내에는 채혈 장소를 선택하고
+공식 층별 안내에는 본관·별관·암병원의 주요 시설, 엘리베이터와
+에스컬레이터가 표시되어 있다. 현재 프로토타입은 이 페이지의 HTTPS
+지도 이미지를 배경으로 사용하고 별도 SVG로 붉은 데모 경로를
+표시한다. 2026-07-30에 본관 1층 입퇴원 수속, 암병원 1층 내시경실,
+암병원 3층 수술환자가족대기실 위치를 확인했다.
+
+모바일 앱 안내에는 채혈 장소를 선택하고
 `위치확인`으로 위치를 확인하는 기존 기능이 설명되어 있다. 2026년
-공사 안내처럼 연결통로와 시설 위치는 바뀔 수 있으므로, 공개 지도를
-고정 복제해 실시간 길찾기라고 표시하지 않는다. 실제 도입에는 병원의
-지도 자산 사용 승인과 최신 공간 데이터가 필요하다.
+공사 안내처럼 연결통로와 시설 위치는 바뀔 수 있으므로, 현재 경로를
+실시간 길찾기라고 표시하지 않는다. 운영 도입에는 병원 내부 최신
+공간 데이터와 변경 관리가 필요하다.
 
 ## 5. Supabase
 

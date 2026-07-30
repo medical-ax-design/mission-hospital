@@ -37,28 +37,24 @@ const validJourney = {
     steps: ['중앙 엘리베이터로 이동', '1층 원무 방향으로 이동'],
     fallback: '발급되지 않으면 옆 제증명 창구를 방문하세요.',
   },
-  summary: {
-    status: 'UNAVAILABLE',
-  },
   schedules: [
     {
       id: 'schedule-surgery',
       type: 'SURGERY',
       title: '위암 수술',
       startsAt: '2026-07-30T00:00:00.000Z',
-      building: 'MAIN',
-      floor: '2F',
-      location: '수술센터',
+      building: 'CANCER',
+      floor: '3F',
+      location: '수술환자가족대기실',
       preparation: ['보호자 대기 장소를 확인해 주세요.'],
     },
   ],
 } as const;
 
 describe('CaregiverJourneySchema', () => {
-  it('진료 요약 없이 환자 일정을 포함한 여정을 허용한다', () => {
+  it('환자 일정을 포함한 여정을 허용한다', () => {
     const journey = CaregiverJourneySchema.parse(validJourney);
 
-    expect(journey).not.toHaveProperty('summary');
     expect(journey.schedules[0]?.type).toBe('SURGERY');
   });
 

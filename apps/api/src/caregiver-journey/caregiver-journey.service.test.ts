@@ -65,7 +65,6 @@ describe('CaregiverJourneyService', () => {
     const next = await service.advanceDemo();
 
     expect(next.schedules).toEqual(initial.schedules);
-    expect(next).not.toHaveProperty('summary');
   });
 
   it('완료 이후에는 진행 단계를 되돌리지 않는다', async () => {
@@ -76,6 +75,5 @@ describe('CaregiverJourneyService', () => {
     const completed = await service.advanceDemo();
 
     expect(completed.treatment.stage).toBe('COMPLETED');
-    expect(completed).not.toHaveProperty('summary');
   });
 });
