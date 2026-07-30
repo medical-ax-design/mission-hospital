@@ -3,7 +3,7 @@ import type {
   RestrictionGuidance,
   SavedQuestion,
 } from '@ready-on/contracts/restriction-guidance';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import type { CaregiverJourneyApi } from './api';
@@ -364,18 +364,38 @@ describe('CaregiverJourneyApp', () => {
       await screen.findByRole('button', { name: '과정 알아보기' }),
     );
 
+    const controls = screen.getByRole('complementary', {
+      name: '발표용 데모 제어',
+    });
+    expect(controls).toBeInTheDocument();
+    expect(within(controls).getByText('1 / 5')).toBeInTheDocument();
     expect(
-      screen.getByRole('complementary', {
-        name: '발표용 데모 제어',
+      screen.getByRole('img', {
+        name: '수술 준비 일반 과정 AI 재구성 장면',
       }),
     ).toBeInTheDocument();
+
     await user.click(screen.getByRole('button', { name: '다음' }));
-    expect(
-      screen.getByRole('heading', {
-        name: '발표용 병원 상태 시연',
+
+    expect(within(controls).getByText('2 / 5')).toBeInTheDocument();
+    const statusCard = screen.getByRole('region', {
+      name: '발표용 병원 상태 시연',
+    });
+    expect(within(statusCard).getByText('수술실 입실')).toBeInTheDocument();
+    const timelineSteps = within(
+      screen.getByRole('region', {
+        name: '일반적인 수술 과정',
       }),
-    ).toBeInTheDocument();
-    expect(screen.getAllByText('수술실 입실').length).toBeGreaterThan(0);
+    ).getAllByRole('listitem');
+    expect(timelineSteps[1]).toHaveAttribute('aria-current', 'step');
+    expect(
+      screen.getByRole('img', {
+        name: '수술실 입실 일반 과정 AI 재구성 장면',
+      }),
+    ).toHaveAttribute(
+      'src',
+      '/media/treatment/operating-room-entry.png',
+    );
     expect(screen.getByText('AI로 재구성한 일반 과정')).toBeInTheDocument();
     expect(
       screen.getByText('현재 환자의 실시간 영상이 아닙니다'),
