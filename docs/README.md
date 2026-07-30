@@ -1,8 +1,9 @@
 # 프로젝트 문서 안내
 
-이 디렉터리는 현재 Wait:ON 보호자 동행 발표 프로토타입과 후속 검사·수술 준비 누락 방지 제품 트랙의 제품, UX, 도메인, 기술 및 운영 기준을 관리한다.
-
-현재 구현 범위는 [`PRODUCT_BRIEF.md`](./PRODUCT_BRIEF.md), [`PRD.md`](./PRD.md), [`UX_SPEC.md`](./UX_SPEC.md)를 기준으로 한다. 기존 도메인·DB·인프라 문서는 준비 누락 방지 후속 트랙의 설계 자산이며, 해당 기능이 현재 보호자 UI에 구현됐다는 뜻이 아니다.
+이 디렉터리는 현재 Wait:ON 보호자 동행 발표 프로토타입의 제품,
+화면, 기술과 안전 기준을 관리한다. 이전 제품 방향과 완료된 작업
+기록은 [`archive`](./archive)에 보존하지만 현재 요구사항이나 구현
+상태의 근거로 사용하지 않는다.
 
 ## 문서 우선순위
 
@@ -10,32 +11,32 @@
 
 1. [`PRODUCT_BRIEF.md`](./PRODUCT_BRIEF.md): 제품의 존재 이유와 경계
 2. [`PRD.md`](./PRD.md): 기능 범위와 인수 조건
-3. [`DOMAIN_MODEL.md`](./DOMAIN_MODEL.md): 상태와 비즈니스 규칙
-4. [`UX_SPEC.md`](./UX_SPEC.md): 화면과 사용자 상호작용
-5. 기술 문서: DB, API, 아키텍처, 보안, 인프라
-6. 제작 문서: 프로토타입, QA, 팀 운영
+3. [`UX_SPEC.md`](./UX_SPEC.md): 화면과 사용자 상호작용
+4. [`TECHNICAL_OVERVIEW.md`](./TECHNICAL_OVERVIEW.md): 현재 구현 상태
+5. [`SECURITY_PRIVACY.md`](./SECURITY_PRIVACY.md): 제품화 안전 기준
+6. [`REFERENCES.md`](./REFERENCES.md): 조사와 기술 근거
 
 ## 제품 문서
 
 - [`PRODUCT_BRIEF.md`](./PRODUCT_BRIEF.md): 제품 개요, 문제, 사용자와 가치
 - [`PRD.md`](./PRD.md): 제품 요구사항과 MVP 범위
-- [`UX_SPEC.md`](./UX_SPEC.md): 의료진·환자·보호자 사용자 흐름과 화면 명세
-- [`DOMAIN_MODEL.md`](./DOMAIN_MODEL.md): 도메인 용어, 상태 모델과 불변 조건
+- [`UX_SPEC.md`](./UX_SPEC.md): 보호자 사용자 흐름과 화면 명세
 
-## 기술 문서
+## 기술·안전·근거
 
-- [`ARCHITECTURE.md`](./ARCHITECTURE.md): 전체 시스템과 모듈 구성
-- [`DATABASE.md`](./DATABASE.md): PostgreSQL 스키마, 제약조건과 인덱스
-- [`API_SPEC.md`](./API_SPEC.md): REST API 계약
+- [`TECHNICAL_OVERVIEW.md`](./TECHNICAL_OVERVIEW.md): 실제 코드 기준
+  아키텍처, API, 저장소와 실행 방법
 - [`SECURITY_PRIVACY.md`](./SECURITY_PRIVACY.md): 인증, 권한, 감사와 개인정보 기준
-- [`INFRASTRUCTURE.md`](./INFRASTRUCTURE.md): Vercel, OCI, Supabase 배포 구성
-
-## 제작·검증 문서
-
-- [`PROTOTYPE_PLAN.md`](./PROTOTYPE_PLAN.md): 4일 발표용 프로토타입 범위와 일정
-- [`QA_PLAN.md`](./QA_PLAN.md): 기능·보안·사용성 테스트
-- [`TEAM_PLAN.md`](./TEAM_PLAN.md): 5인 팀 역할과 협업 방식
 - [`REFERENCES.md`](./REFERENCES.md): 제품·의료 콘텐츠·기술 근거
+
+## 아카이브
+
+- [`archive/preparation-orchestration`](./archive/preparation-orchestration):
+  이전 검사·수술 준비 오케스트레이션 제품 트랙
+- [`archive/process`](./archive/process): 완료된 설계와 구현 계획
+
+아카이브 문서는 의사결정 배경을 찾을 때만 사용한다. 현재 API 계약은
+`packages/contracts`의 Zod 스키마와 API 테스트를 최종 기준으로 삼는다.
 
 ## 공통 작성 규칙
 
