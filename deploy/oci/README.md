@@ -14,7 +14,9 @@ Internet :443
 ```
 
 호스트의 `3001` 포트는 공개하지 않는다. OCI Security List와
-호스트 방화벽은 SSH, HTTP, HTTPS만 허용한다.
+호스트 방화벽은 SSH, HTTP, HTTPS만 허용한다. Caddy 설정 bind
+mount에는 Oracle Linux의 SELinux 강제 모드에 맞는 전용 라벨을
+적용한다.
 
 ## 서버 환경변수
 
