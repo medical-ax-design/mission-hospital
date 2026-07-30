@@ -403,7 +403,7 @@ describe('CaregiverJourneyApp', () => {
     expect(api.advanceDemo).not.toHaveBeenCalled();
   });
 
-  it('세 개의 주요 탭을 제공한다', async () => {
+  it('네 개의 주요 탭을 제공한다', async () => {
     const api = createFakeApi({
       getDemo: vi.fn().mockResolvedValue({
         ...unlinkedJourney,
@@ -425,6 +425,37 @@ describe('CaregiverJourneyApp', () => {
     expect(
       screen.getByRole('button', { name: '이용 안내' }),
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: '내 정보' }),
+    ).toBeInTheDocument();
+  });
+
+  it('내 정보 탭에서 보호자와 연결 환자를 확인한다', async () => {
+    const user = userEvent.setup();
+    const api = createFakeApi({
+      getDemo: vi.fn().mockResolvedValue({
+        ...unlinkedJourney,
+        linked: true,
+      }),
+    });
+
+    render(<CaregiverJourneyApp api={api} />);
+
+    await user.click(
+      await screen.findByRole('button', { name: '내 정보' }),
+    );
+
+    expect(
+      screen.getByRole('heading', { name: '내 정보' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: '김서연' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('김정우 환자의 딸')).toBeInTheDocument();
+    expect(screen.getByText('68세')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: '내 정보' }),
+    ).toHaveAttribute('aria-current', 'page');
   });
 
   it('일정 탭에서 환자 일정 날짜와 빈 날짜를 확인한다', async () => {
