@@ -101,5 +101,9 @@ export function getAdjacentTreatmentStage(
     TREATMENT_STAGE_ORDER.length - 1,
     Math.max(0, index + offset),
   );
-  return TREATMENT_STAGE_ORDER[nextIndex];
+  const nextStage = TREATMENT_STAGE_ORDER[nextIndex];
+  if (nextStage === undefined) {
+    throw new Error('Treatment stage order invariant violated');
+  }
+  return nextStage;
 }

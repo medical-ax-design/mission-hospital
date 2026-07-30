@@ -25,11 +25,18 @@ describe('treatment stage presentation', () => {
     }
   });
 
-  it('clamps previous and next movement at the boundaries', () => {
-    expect(getAdjacentTreatmentStage('PREPARING', -1)).toBe('PREPARING');
-    expect(getAdjacentTreatmentStage('PREPARING', 1)).toBe(
-      'IN_OPERATING_ROOM',
-    );
-    expect(getAdjacentTreatmentStage('COMPLETED', 1)).toBe('COMPLETED');
+  it('returns adjacent stages and clamps movement at both boundaries', () => {
+    const transitions = [
+      ['PREPARING', 'PREPARING', 'IN_OPERATING_ROOM'],
+      ['IN_OPERATING_ROOM', 'PREPARING', 'IN_PROGRESS'],
+      ['IN_PROGRESS', 'IN_OPERATING_ROOM', 'RECOVERY'],
+      ['RECOVERY', 'IN_PROGRESS', 'COMPLETED'],
+      ['COMPLETED', 'RECOVERY', 'COMPLETED'],
+    ] as const;
+
+    for (const [stage, previousStage, nextStage] of transitions) {
+      expect(getAdjacentTreatmentStage(stage, -1)).toBe(previousStage);
+      expect(getAdjacentTreatmentStage(stage, 1)).toBe(nextStage);
+    }
   });
 });
