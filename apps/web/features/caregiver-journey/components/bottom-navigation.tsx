@@ -1,4 +1,4 @@
-export type RootTab = 'home' | 'schedule' | 'service-guide';
+export type RootTab = 'home' | 'schedule' | 'service-guide' | 'profile';
 
 interface BottomNavigationProps {
   current: RootTab;
@@ -12,6 +12,7 @@ const tabs: Array<{
   { id: 'home', label: '홈' },
   { id: 'schedule', label: '일정' },
   { id: 'service-guide', label: '이용 안내' },
+  { id: 'profile', label: '내 정보' },
 ];
 
 function NavigationIcon({ tab }: { tab: RootTab }) {
@@ -32,10 +33,19 @@ function NavigationIcon({ tab }: { tab: RootTab }) {
     );
   }
 
+  if (tab === 'service-guide') {
+    return (
+      <svg aria-hidden="true" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="8.5" />
+        <path d="m9.5 14.5 2-5 5-2-2 5z" />
+      </svg>
+    );
+  }
+
   return (
     <svg aria-hidden="true" viewBox="0 0 24 24">
-      <circle cx="12" cy="12" r="8.5" />
-      <path d="m9.5 14.5 2-5 5-2-2 5z" />
+      <circle cx="12" cy="8" r="3.5" />
+      <path d="M5.5 20c.5-4 2.7-6 6.5-6s6 2 6.5 6" />
     </svg>
   );
 }
