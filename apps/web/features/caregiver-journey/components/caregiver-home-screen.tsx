@@ -3,6 +3,8 @@ import type {
   DemoScenarioId,
 } from '@ready-on/contracts/caregiver-journey';
 import type { RestrictionGuidance } from '@ready-on/contracts/restriction-guidance';
+import { useState } from 'react';
+import { scheduleDateKey } from '../calendar-model';
 import { formatHospitalTime } from '../format-hospital-time';
 import {
   BottomNavigation,
@@ -18,6 +20,7 @@ interface CaregiverHomeScreenProps {
   onOpenProgress: () => void;
   onOpenTask: () => void;
   onOpenRestrictions: () => void;
+  onOpenPurpose: (query: string) => void;
   onSelectTab: (tab: RootTab) => void;
   onSelectScenario: (scenarioId: DemoScenarioId) => void;
 }
@@ -30,29 +33,74 @@ export function CaregiverHomeScreen({
   onOpenProgress,
   onOpenTask,
   onOpenRestrictions,
+  onOpenPurpose,
   onSelectTab,
   onSelectScenario,
 }: CaregiverHomeScreenProps) {
   const taskCompleted = journey.task?.status === 'COMPLETED';
+  const [purposeQuery, setPurposeQuery] = useState('');
+  const journeyDate = scheduleDateKey(journey.schedules[0]!.startsAt);
+  const todaySchedules = journey.schedules
+    .filter(
+      ({ startsAt }) => scheduleDateKey(startsAt) === journeyDate,
+    )
+    .slice(0, 3);
 
   return (
     <MobileShell compactHeader>
       <main className="screen screen--home screen--with-navigation">
-        <div className="home-intro">
-          <div>
-            <p className="eyebrow">안녕하세요, 보호자님</p>
-            <p className="patient-line">
-              {journey.patient.displayName} 환자 ·{' '}
-              {journey.patient.procedureName}
-            </p>
+        <div className="home-hero">
+          <div className="home-intro">
+            <div>
+              <p className="eyebrow">안녕하세요, 보호자님</p>
+              <h1>
+                오늘 병원 일도
+                <br />
+                <strong>차근차근 도와드릴게요.</strong>
+              </h1>
+              <p className="patient-line">
+                {journey.patient.displayName} 환자 ·{' '}
+                {journey.patient.procedureName}
+              </p>
+            </div>
+            <button
+              className="icon-button"
+              aria-label="알림"
+              type="button"
+            >
+              <span aria-hidden="true">●</span>
+            </button>
           </div>
-          <button
-            className="icon-button"
-            aria-label="알림"
-            type="button"
+
+          <form
+            className="home-purpose-search"
+            onSubmit={(event) => {
+              event.preventDefault();
+              const query = purposeQuery.trim();
+              if (query) onOpenPurpose(query);
+            }}
           >
-            <span aria-hidden="true">●</span>
-          </button>
+            <label htmlFor="home-purpose-query">
+              병원 이용 목적 찾기
+            </label>
+            <div>
+              <input
+                id="home-purpose-query"
+                onChange={(event) =>
+                  setPurposeQuery(event.currentTarget.value)
+                }
+                placeholder="무엇을 처리하시나요?"
+                value={purposeQuery}
+              />
+              <button
+                aria-label="목적 검색"
+                disabled={!purposeQuery.trim()}
+                type="submit"
+              >
+                →
+              </button>
+            </div>
+          </form>
         </div>
 
         <section className="status-hero" aria-labelledby="current-status">
@@ -65,9 +113,9 @@ export function CaregiverHomeScreen({
               병원 확인 {formatHospitalTime(journey.treatment.updatedAt)}
             </span>
           </div>
-          <h1 id="current-status">
+          <h2 id="current-status">
             지금은 <strong>{journey.treatment.label}</strong>입니다
-          </h1>
+          </h2>
           <p>{journey.treatment.nextNotice}</p>
           {journey.scenarioId === 'gastric-surgery' && (
             <button
@@ -140,6 +188,40 @@ export function CaregiverHomeScreen({
               </span>
             </div>
           )}
+        </section>
+
+        <section className="home-schedule" aria-labelledby="today-schedule">
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">오늘</p>
+              <h2 id="today-schedule">오늘 일정</h2>
+            </div>
+            <button
+              className="text-button"
+              onClick={() => onSelectTab('schedule')}
+              type="button"
+            >
+              전체보기
+            </button>
+          </div>
+          <div className="home-schedule__list">
+            {todaySchedules.map((schedule, index) => (
+              <article key={schedule.id}>
+                <time dateTime={schedule.startsAt}>
+                  {formatHospitalTime(schedule.startsAt)}
+                </time>
+                <span aria-hidden="true">
+                  {index === 0 ? '다음' : ''}
+                </span>
+                <div>
+                  <strong>{schedule.title}</strong>
+                  <small>
+                    {schedule.floor} · {schedule.location}
+                  </small>
+                </div>
+              </article>
+            ))}
+          </div>
         </section>
 
         <section className="next-notice" aria-labelledby="next-notice">

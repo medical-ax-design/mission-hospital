@@ -6,11 +6,23 @@ export interface CalendarDay {
   schedules: PatientSchedule[];
 }
 
+export interface DateStripDay {
+  dateKey: string;
+  dayNumber: number;
+  weekday: string;
+  schedules: PatientSchedule[];
+}
+
 const hospitalDateFormatter = new Intl.DateTimeFormat('ko-KR', {
   timeZone: 'Asia/Seoul',
   year: 'numeric',
   month: '2-digit',
   day: '2-digit',
+});
+
+const weekdayFormatter = new Intl.DateTimeFormat('ko-KR', {
+  timeZone: 'UTC',
+  weekday: 'short',
 });
 
 export function scheduleDateKey(startsAt: string) {
@@ -20,6 +32,45 @@ export function scheduleDateKey(startsAt: string) {
   const day = parts.find(({ type }) => type === 'day')?.value;
 
   return `${year}-${month}-${day}`;
+}
+
+export function shiftDateKey(dateKey: string, offset: number) {
+  const [year, month, day] = dateKey.split('-').map(Number);
+  const date = new Date(Date.UTC(year!, month! - 1, day! + offset));
+
+  return [
+    date.getUTCFullYear(),
+    String(date.getUTCMonth() + 1).padStart(2, '0'),
+    String(date.getUTCDate()).padStart(2, '0'),
+  ].join('-');
+}
+
+export function buildDateStrip(
+  centerDateKey: string,
+  schedules: PatientSchedule[],
+): DateStripDay[] {
+  const schedulesByDate = new Map<string, PatientSchedule[]>();
+
+  for (const schedule of schedules) {
+    const key = scheduleDateKey(schedule.startsAt);
+    const current = schedulesByDate.get(key) ?? [];
+    schedulesByDate.set(key, [...current, schedule]);
+  }
+
+  return Array.from({ length: 5 }, (_, index) => {
+    const dateKey = shiftDateKey(centerDateKey, index - 2);
+    const [year, month, day] = dateKey.split('-').map(Number);
+    const date = new Date(Date.UTC(year!, month! - 1, day!));
+
+    return {
+      dateKey,
+      dayNumber: day!,
+      weekday: weekdayFormatter.format(date),
+      schedules: (schedulesByDate.get(dateKey) ?? []).sort((left, right) =>
+        left.startsAt.localeCompare(right.startsAt),
+      ),
+    };
+  });
 }
 
 export function buildCalendarMonth(
