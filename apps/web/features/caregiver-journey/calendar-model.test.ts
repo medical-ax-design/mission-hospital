@@ -2,7 +2,9 @@ import type { PatientSchedule } from '@ready-on/contracts/caregiver-journey';
 import { describe, expect, it } from 'vitest';
 import {
   buildCalendarMonth,
+  buildDateStrip,
   scheduleDateKey,
+  shiftDateKey,
 } from './calendar-model';
 
 const schedules: PatientSchedule[] = [
@@ -63,5 +65,26 @@ describe('calendar model', () => {
       'earlier',
       'later',
     ]);
+  });
+
+  it('월 경계를 포함한 5일 날짜 스트립을 만든다', () => {
+    const strip = buildDateStrip('2026-07-31', schedules);
+
+    expect(strip.map(({ dateKey }) => dateKey)).toEqual([
+      '2026-07-29',
+      '2026-07-30',
+      '2026-07-31',
+      '2026-08-01',
+      '2026-08-02',
+    ]);
+    expect(strip[1]?.schedules.map(({ id }) => id)).toEqual([
+      'earlier',
+      'later',
+    ]);
+  });
+
+  it('날짜 키를 하루 단위로 이동한다', () => {
+    expect(shiftDateKey('2026-07-31', 1)).toBe('2026-08-01');
+    expect(shiftDateKey('2026-08-01', -1)).toBe('2026-07-31');
   });
 });

@@ -135,6 +135,11 @@ export function CaregiverJourneyApp({
       .finally(() => setBusy(false));
   }, [api, hospitalCatalog, view]);
 
+  useEffect(() => {
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, [view]);
+
   if (error) {
     return (
       <MobileShell>
@@ -440,6 +445,7 @@ export function CaregiverJourneyApp({
       onOpenProgress={() => setView('progress')}
       onOpenTask={() => setView('task')}
       onOpenRestrictions={() => setView('restrictions')}
+      onOpenPurpose={openHospitalPurpose}
       onSelectTab={(tab: RootTab) => setView(tab)}
       onSelectScenario={(scenarioId) => {
         setBusy(true);

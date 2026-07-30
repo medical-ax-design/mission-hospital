@@ -445,11 +445,10 @@ describe('CaregiverJourneyApp', () => {
     ).toBeInTheDocument();
     expect(screen.getByText('2026년 7월')).toBeInTheDocument();
 
-    await user.click(
-      screen.getByRole('button', {
-        name: '30일, 김정우 환자 일정 2개',
-      }),
-    );
+    const selectedDate = screen.getByRole('button', {
+      name: '30일 목, 일정 2개',
+    });
+    expect(selectedDate).toHaveAttribute('aria-pressed', 'true');
 
     expect(screen.getByText('입원 수속')).toBeInTheDocument();
     expect(screen.getByText('위암 수술')).toBeInTheDocument();
@@ -458,11 +457,21 @@ describe('CaregiverJourneyApp', () => {
     ).toBeInTheDocument();
 
     await user.click(
-      screen.getByRole('button', { name: '29일, 일정 없음' }),
+      screen.getByRole('button', { name: '29일 수, 일정 없음' }),
     );
 
     expect(
       screen.getByText('등록된 병원 일정이 없습니다'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: '29일 수, 일정 없음' }),
+    ).toHaveAttribute('aria-pressed', 'true');
+
+    await user.click(screen.getByRole('button', { name: '달력 보기' }));
+    expect(
+      screen.getByRole('button', {
+        name: '30일, 김정우 환자 일정 2개',
+      }),
     ).toBeInTheDocument();
   });
 
@@ -649,6 +658,37 @@ describe('CaregiverJourneyApp', () => {
       }),
     ).toBeInTheDocument();
     expect(searchRestrictions).toHaveBeenCalledTimes(2);
+  });
+
+  it('홈에서 병원 이용 목적을 검색한다', async () => {
+    const user = userEvent.setup();
+    const searchHospitalGuidePurpose = vi
+      .fn()
+      .mockResolvedValue(documentIssuanceResultFixture);
+    const api = createFakeApi({
+      getDemo: vi.fn().mockResolvedValue({
+        ...unlinkedJourney,
+        linked: true,
+      }),
+      searchHospitalGuidePurpose,
+    });
+
+    render(<CaregiverJourneyApp api={api} />);
+
+    await user.type(
+      await screen.findByRole('textbox', {
+        name: '병원 이용 목적 찾기',
+      }),
+      '서류 발급',
+    );
+    await user.click(
+      screen.getByRole('button', { name: '목적 검색' }),
+    );
+
+    expect(searchHospitalGuidePurpose).toHaveBeenCalledWith('서류 발급');
+    expect(
+      await screen.findByRole('heading', { name: '서류 발급' }),
+    ).toBeInTheDocument();
   });
 
   it('서류 발급 목적에서 공식 처리 방법을 확인한다', async () => {
