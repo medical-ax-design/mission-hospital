@@ -6,6 +6,10 @@ import type {
   HospitalGuideCatalog,
   HospitalGuidePurposeResult,
 } from '@ready-on/contracts/hospital-guide';
+import {
+  findOfficialHospitalGuidePurpose,
+  officialHospitalGuideCatalog,
+} from '@ready-on/contracts/official-hospital-guide';
 import type {
   RestrictionGuidance,
   RestrictionSearchResult,
@@ -71,7 +75,7 @@ export function CaregiverJourneyApp({
   const [questions, setQuestions] = useState<SavedQuestion[]>([]);
   const [actionError, setActionError] = useState<string | null>(null);
   const [hospitalCatalog, setHospitalCatalog] =
-    useState<HospitalGuideCatalog | null>(null);
+    useState<HospitalGuideCatalog>(officialHospitalGuideCatalog);
   const [hospitalPurpose, setHospitalPurpose] =
     useState<HospitalGuidePurposeResult | null>(null);
   const [hospitalGuideTarget, setHospitalGuideTarget] =
@@ -79,23 +83,22 @@ export function CaregiverJourneyApp({
 
   const openHospitalPurpose = (query: string) => {
     setActionError(null);
-    setBusy(true);
+    const result = findOfficialHospitalGuidePurpose(query);
 
-    const catalogRequest = hospitalCatalog
-      ? Promise.resolve(hospitalCatalog)
-      : api.getHospitalGuideCatalog();
+    if (!result) {
+      setActionError('등록된 목적을 찾지 못했습니다.');
+      return;
+    }
 
-    void Promise.all([
-      catalogRequest,
-      api.searchHospitalGuidePurpose(query),
-    ])
-      .then(([catalog, result]) => {
-        setHospitalCatalog(catalog);
-        setHospitalPurpose(result);
-        setView('hospital-purpose');
-      })
-      .catch(() => setActionError('등록된 목적을 찾지 못했습니다.'))
-      .finally(() => setBusy(false));
+    setHospitalPurpose(result);
+    setView('hospital-purpose');
+
+    void api
+      .searchHospitalGuidePurpose(query)
+      .then(setHospitalPurpose)
+      .catch(() => {
+        // 배포 API가 잠시 응답하지 않아도 검증된 공개 안내를 유지한다.
+      });
   };
 
   const loadJourney = useCallback(async () => {
@@ -127,15 +130,15 @@ export function CaregiverJourneyApp({
   }, [api, journey?.linked, journey?.scenarioId]);
 
   useEffect(() => {
-    if (view !== 'service-guide' || hospitalCatalog) return;
+    if (view !== 'service-guide') return;
 
-    setBusy(true);
     void api
       .getHospitalGuideCatalog()
       .then(setHospitalCatalog)
-      .catch(() => setActionError('병원 안내 정보를 불러오지 못했습니다.'))
-      .finally(() => setBusy(false));
-  }, [api, hospitalCatalog, view]);
+      .catch(() => {
+        // 배포 API가 잠시 응답하지 않아도 검증된 공개 안내를 유지한다.
+      });
+  }, [api, view]);
 
   useEffect(() => {
     document.documentElement.scrollTop = 0;

@@ -7,6 +7,7 @@
     ".": "./src/index.ts",
     "./caregiver-journey": "./src/caregiver-journey.ts",
     "./hospital-guide": "./src/hospital-guide.ts",
+    "./official-hospital-guide": "./src/official-hospital-guide.ts",
     "./restriction-guidance": "./src/restriction-guidance.ts"
   },
   "scripts": {
