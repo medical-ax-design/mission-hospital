@@ -1,38 +1,76 @@
-# Ready:ON
+# Wait:ON 보호자 동행 프로토타입
 
-Ready:ON은 병원이 승인한 검사·수술 준비사항을 환자와 보호자가 제때 수행하도록 돕고, 의료진에게는 준비가 완료되지 않은 환자만 선별해 보여주는 Medical AX 서비스입니다.
+Wait:ON은 암 수술 환자의 보호자가 병원에서 기다리는 동안 **확인된 치료 단계**, **지금 처리할 업무**, **목적에 맞는 이동 안내**, **의료진이 확인한 설명**을 하나의 여정으로 이어서 보는 Medical AX 서비스 프로토타입입니다.
 
-현재 단계는 실제 환자정보와 병원 시스템을 연결하지 않는 4일 발표용 프로토타입입니다.
+현재 구현은 4일 발표용 가상 시나리오입니다. 기존에 설계한 검사·수술 준비 누락 방지 오케스트레이션은 후속 제품 트랙으로 문서에 보존하며, 이번 UI에 구현된 것으로 간주하지 않습니다.
+
+> 이 프로토타입의 치료 단계, 이동 경로와 의료진 설명은 모두 가상 데이터이며 실제 환자 상태 또는 의료지침이 아니다.
+
+## 구현된 발표 여정
+
+1. 가상 환자 김정우(68세, 위암 수술)를 보호자 김서연(딸)과 연결
+2. 병원이 확인한 치료 진행 단계와 다음 안내 확인
+3. 일반적인 수술 과정을 별도 교육 정보로 확인
+4. 보호자 업무인 입원 서류 발급과 준비물 확인
+5. 수술 대기실에서 본관 1층 키오스크까지 가상 경로 확인
+6. 업무 완료 후 홈 상태 반영
+7. 발표자 도구로 치료 단계 전환
+8. 의료진 확인 후 진료 내용 정리와 가족 공유 미리보기 확인
+
+## 로컬 실행
+
+Node.js 22 이상과 npm이 필요합니다.
+
+```bash
+npm install
+```
+
+터미널 1:
+
+```bash
+npm run dev --workspace @ready-on/api
+```
+
+터미널 2:
+
+```bash
+NEXT_PUBLIC_API_BASE_URL=http://localhost:3001 npm run dev --workspace @ready-on/web
+```
+
+- 일반 화면: `http://localhost:3000`
+- 발표자 도구 포함: `http://localhost:3000/?demo=1`
+- API 상태: `http://localhost:3001/health/ready`
+
+메모리 저장소를 사용하므로 API 프로세스를 재시작하면 가상 여정은 초기화됩니다.
+
+## 검증
+
+```bash
+npm test
+npm run typecheck
+npm run build
+```
 
 ## 기술 구성
 
-- Web: Next.js, TypeScript, Vercel
-- API: NestJS, TypeScript, OCI, Docker
-- Database: Supabase PostgreSQL
-- Authentication: Supabase Auth
-- API: REST, OpenAPI
+- Web: Next.js 16, React 19, TypeScript
+- API: NestJS 11, TypeScript
+- 계약 검증: Zod
+- 테스트: Vitest, Testing Library, Supertest
+- 후속 운영 인프라 후보: Vercel, OCI, Supabase PostgreSQL
 
 ## 문서
-
-전체 문서와 우선순위는 [문서 안내](./docs/README.md)에서 확인할 수 있습니다.
 
 - [제품 개요](./docs/PRODUCT_BRIEF.md)
 - [제품 요구사항](./docs/PRD.md)
 - [UX 및 화면 명세](./docs/UX_SPEC.md)
-- [도메인 모델](./docs/DOMAIN_MODEL.md)
-- [시스템 아키텍처](./docs/ARCHITECTURE.md)
-- [데이터베이스 설계](./docs/DATABASE.md)
-- [REST API 명세](./docs/API_SPEC.md)
-- [보안·개인정보 기준](./docs/SECURITY_PRIVACY.md)
-- [인프라 및 배포](./docs/INFRASTRUCTURE.md)
-- [4일 프로토타입 계획](./docs/PROTOTYPE_PLAN.md)
-- [QA 계획](./docs/QA_PLAN.md)
-- [5인 팀 계획](./docs/TEAM_PLAN.md)
-- [근거 자료](./docs/REFERENCES.md)
+- [보호자 여정 설계](./docs/superpowers/specs/2026-07-30-caregiver-journey-prototype-design.md)
+- [구현 계획](./docs/superpowers/plans/2026-07-30-caregiver-journey-prototype.md)
+- [전체 문서 안내](./docs/README.md)
 
 ## 안전 경계
 
-- AI가 의료지침을 생성하거나 승인하지 않습니다.
-- 병원이 작성·검토·승인한 프로토콜만 환자에게 전달합니다.
-- 준비 작업 완료와 임상적 검사 가능 판정을 구분합니다.
-- 프로토타입에서는 실제 환자정보를 사용하지 않습니다.
+- 실제 환자정보, 실제 삼성서울병원 경로, EMR·OCS 또는 Voice EMR을 연결하지 않습니다.
+- 교육용 일반 과정과 병원이 확인한 치료 상태를 화면에서 구분합니다.
+- AI가 진단, 의료지침 또는 진료 요약을 새로 만들지 않습니다.
+- 가족 공유는 외부 메시지를 보내지 않는 화면 미리보기입니다.
