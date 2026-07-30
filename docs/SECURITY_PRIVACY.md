@@ -150,3 +150,19 @@
 - 국내 의료·개인정보 관련 법률 자문
 
 이 문서는 법률 자문을 대체하지 않는다.
+
+## 13. 배포 비밀정보
+
+운영 배포에서 다음 값은 Git, PR 본문, CI 로그와 컨테이너 이미지에
+포함하지 않는다.
+
+- OCI tenancy·compartment·instance OCID와 API 개인키
+- SSH 개인키
+- 실제 공인 IP와 운영 도메인 구성값
+- Vercel 토큰
+- Supabase `DATABASE_URL`과 서비스 역할 키
+
+OCI 서버의 실제 `deploy/oci/.env`는 소유자만 읽을 수 있도록
+`chmod 600`을 적용한다. 저장소에는 키와 값이 없는
+`deploy/oci/.env.example`만 유지한다. API 컨테이너는 비루트
+사용자로 실행하고 `3001` 포트를 호스트에 publish하지 않는다.
