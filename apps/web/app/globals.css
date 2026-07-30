@@ -1276,6 +1276,154 @@ h2 {
   animation: pulse 1.1s infinite alternate ease-in-out;
 }
 
+.restriction-card {
+  margin: 22px 0;
+  padding: 22px;
+  border: 1px solid #efc8bd;
+  border-radius: 20px;
+  background: #fff6f2;
+}
+
+.restriction-card h2 {
+  margin-bottom: 8px;
+  font-size: 20px;
+}
+
+.restriction-card p:not(.eyebrow) {
+  margin: 0 0 8px;
+  font-size: 15px;
+  font-weight: 750;
+  line-height: 1.5;
+}
+
+.restriction-card small {
+  display: block;
+  margin-bottom: 16px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.restriction-screen h1 {
+  margin-bottom: 10px;
+  font-size: 28px;
+}
+
+.restriction-screen > p {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.restriction-list,
+.question-list {
+  display: grid;
+  gap: 12px;
+  margin: 22px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.restriction-list li,
+.question-list li {
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--soft);
+}
+
+.restriction-list strong,
+.restriction-list span,
+.question-list strong {
+  display: block;
+}
+
+.restriction-list span {
+  margin: 5px 0 9px;
+  color: #a13d25;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.restriction-list p,
+.question-list p {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.restriction-list small {
+  color: var(--muted);
+}
+
+.restriction-search {
+  margin: 26px 0 18px;
+}
+
+.restriction-search label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 800;
+}
+
+.restriction-search div {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+}
+
+.restriction-search input {
+  min-width: 0;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid #aebdb5;
+  border-radius: 12px;
+  font: inherit;
+}
+
+.restriction-search button,
+.question-list button {
+  padding: 0 16px;
+  border: 0;
+  border-radius: 12px;
+  color: #fff;
+  background: var(--green);
+  font-weight: 800;
+}
+
+.restriction-search input:focus-visible,
+.official-source:focus-visible {
+  outline: 3px solid #ffbf47;
+  outline-offset: 3px;
+}
+
+.search-result {
+  margin-bottom: 18px;
+  padding: 20px;
+  border: 2px solid #e6a38f;
+  border-radius: 18px;
+  background: #fff8f5;
+}
+
+.search-result h2 {
+  margin-bottom: 9px;
+  color: #8b2f1b;
+  font-size: 21px;
+}
+
+.search-result small {
+  display: block;
+  margin-bottom: 16px;
+  color: var(--muted);
+}
+
+.official-source {
+  display: inline-block;
+  margin-top: 20px;
+  color: var(--green-dark);
+  font-size: 13px;
+  font-weight: 800;
+}
+
 @keyframes pulse {
   from {
     opacity: 0.35;

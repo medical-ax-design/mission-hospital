@@ -30,6 +30,11 @@ Annual Report는 전체 외래·입원, 진료과별 환자, 성별·연령, 병
 
 같은 CT도 조영제, 부위와 프로토콜에 따라 금식 조건이 다르다. 이 차이가 Procedure와 승인 프로토콜을 분리하고 범용 의료 규칙을 생성하지 않는 설계의 근거다.
 
+현재 오전 대장내시경 제한 데모는 위 링크의 `오전 대장내시경 준비
+안내`를 2026-07-30에 확인해 짧은 구조화 데이터로 재작성했다.
+원문 전체를 복제하지 않으며 실제 도입 시 병원 내부 최신 승인본과
+콘텐츠 사용 승인이 필요하다.
+
 ## 4. Supabase
 
 - [Database Migrations](https://supabase.com/docs/guides/deployment/database-migrations)

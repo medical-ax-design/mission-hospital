@@ -7,6 +7,7 @@ import {
 const journeyResponse = {
   journey: {
     id: 'demo',
+    scenarioId: 'gastric-surgery',
     linked: false,
     patient: {
       id: 'patient-demo',
@@ -46,6 +47,34 @@ const journeyResponse = {
     },
     summary: {
       status: 'UNAVAILABLE',
+    },
+  },
+};
+
+const guidanceResponse = {
+  guidance: {
+    scenarioId: 'morning-colonoscopy',
+    phase: {
+      code: 'THREE_DAYS_BEFORE',
+      label: '검사 3일 전',
+      effectiveText: '검사 3일 전부터 검사 종료 전까지',
+    },
+    headline: '씨 있는 과일과 잡곡류를 피하세요',
+    items: [
+      {
+        id: 'colonoscopy-seeded-fruit',
+        category: 'FOOD',
+        itemName: '씨 있는 과일',
+        resultType: 'DO_NOT_PROVIDE',
+        reason: '씨가 장에 남을 수 있습니다.',
+        effectiveText: '검사 3일 전부터 검사 종료 전까지',
+      },
+    ],
+    source: {
+      title: '삼성서울병원 오전 대장내시경 준비 안내',
+      url: 'https://www.samsunghospital.com/mobile/colonoscopy/method_01.html',
+      checkedAt: '2026-07-30',
+      dataVersion: '2026-07-30.1',
     },
   },
 };
@@ -119,6 +148,79 @@ describe('caregiver journey API client', () => {
     const api = createCaregiverJourneyApi('https://api.example.test');
 
     await expect(api.getDemo()).rejects.toMatchObject({
+      name: 'ZodError',
+    });
+  });
+
+  it('시나리오와 검색어를 인코딩해 제한 안내를 조회한다', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(journeyResponse), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            result: {
+              query: '딸기/키위',
+              normalizedQuery: '딸기/키위',
+              resultType: 'CHECK_BEFORE_PROVIDING',
+              headline: '확인 전에는 제공하지 마세요',
+              reason: '현재 병원 승인 안내만으로 확인할 수 없습니다.',
+              effectiveText: '의료진 확인 전까지',
+              matchedRuleId: null,
+              source: guidanceResponse.guidance.source,
+            },
+          }),
+          {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          },
+        ),
+      );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const api = createCaregiverJourneyApi('https://api.example.test');
+    await api.selectScenario('morning-colonoscopy');
+    await api.searchRestrictions('딸기/키위');
+
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      1,
+      'https://api.example.test/caregiver-journeys/demo/scenarios/morning-colonoscopy/select',
+      { method: 'POST' },
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      'https://api.example.test/caregiver-journeys/demo/restrictions/search?q=%EB%94%B8%EA%B8%B0%2F%ED%82%A4%EC%9C%84',
+      { method: 'GET' },
+    );
+  });
+
+  it('제한 안내 응답이 계약과 다르면 거부한다', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            guidance: {
+              ...guidanceResponse.guidance,
+              source: undefined,
+            },
+          }),
+          {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          },
+        ),
+      ),
+    );
+
+    const api = createCaregiverJourneyApi('https://api.example.test');
+
+    await expect(api.getRestrictions()).rejects.toMatchObject({
       name: 'ZodError',
     });
   });

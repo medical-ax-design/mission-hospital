@@ -3,6 +3,7 @@ import { CaregiverJourneySchema } from './caregiver-journey.js';
 
 const validJourney = {
   id: 'demo',
+  scenarioId: 'gastric-surgery',
   linked: true,
   patient: {
     id: 'patient-demo',
@@ -85,6 +86,15 @@ describe('CaregiverJourneySchema', () => {
           ...validJourney.treatment,
           stage: 'UNKNOWN',
         },
+      }),
+    ).toThrow();
+  });
+
+  it('등록되지 않은 발표 시나리오는 거부한다', () => {
+    expect(() =>
+      CaregiverJourneySchema.parse({
+        ...validJourney,
+        scenarioId: 'unknown-scenario',
       }),
     ).toThrow();
   });

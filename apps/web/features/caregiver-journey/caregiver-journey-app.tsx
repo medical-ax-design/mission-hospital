@@ -1,6 +1,11 @@
 'use client';
 
 import type { CaregiverJourney } from '@ready-on/contracts/caregiver-journey';
+import type {
+  RestrictionGuidance,
+  RestrictionSearchResult,
+  SavedQuestion,
+} from '@ready-on/contracts/restriction-guidance';
 import { useCallback, useEffect, useState } from 'react';
 import {
   createCaregiverJourneyApi,
@@ -12,9 +17,18 @@ import { ClinicalSummaryScreen } from './components/clinical-summary-screen';
 import { MobileShell } from './components/mobile-shell';
 import { PatientLinkScreen } from './components/patient-link-screen';
 import { PurposeGuideScreen } from './components/purpose-guide-screen';
+import { RestrictionGuidanceScreen } from './components/restriction-guidance-screen';
+import { SavedQuestionsScreen } from './components/saved-questions-screen';
 import { TreatmentProgressScreen } from './components/treatment-progress-screen';
 
-type JourneyView = 'home' | 'progress' | 'task' | 'guide' | 'summary';
+type JourneyView =
+  | 'home'
+  | 'progress'
+  | 'task'
+  | 'guide'
+  | 'summary'
+  | 'restrictions'
+  | 'questions';
 
 interface CaregiverJourneyAppProps {
   api?: CaregiverJourneyApi;
@@ -31,6 +45,12 @@ export function CaregiverJourneyApp({
   const [view, setView] = useState<JourneyView>('home');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
+  const [guidance, setGuidance] = useState<RestrictionGuidance | null>(
+    null,
+  );
+  const [searchResult, setSearchResult] =
+    useState<RestrictionSearchResult | null>(null);
+  const [questions, setQuestions] = useState<SavedQuestion[]>([]);
 
   const loadJourney = useCallback(async () => {
     setError(false);
@@ -45,6 +65,20 @@ export function CaregiverJourneyApp({
   useEffect(() => {
     void loadJourney();
   }, [loadJourney]);
+
+  useEffect(() => {
+    if (
+      journey?.linked &&
+      journey.scenarioId === 'morning-colonoscopy'
+    ) {
+      void api
+        .getRestrictions()
+        .then(setGuidance)
+        .catch(() => setError(true));
+    } else {
+      setGuidance(null);
+    }
+  }, [api, journey?.linked, journey?.scenarioId]);
 
   if (error) {
     return (
@@ -149,14 +183,115 @@ export function CaregiverJourneyApp({
     );
   }
 
+  if (view === 'restrictions' && guidance) {
+    return (
+      <RestrictionGuidanceScreen
+        guidance={guidance}
+        searchResult={searchResult}
+        busy={busy}
+        demoMode={demoMode}
+        onHome={() => {
+          setSearchResult(null);
+          setView('home');
+        }}
+        onSearch={(query) => {
+          setBusy(true);
+          void api
+            .searchRestrictions(query)
+            .then(setSearchResult)
+            .catch(() => setError(true))
+            .finally(() => setBusy(false));
+        }}
+        onSaveQuestion={() => {
+          if (!searchResult) return;
+          setBusy(true);
+          void api
+            .saveQuestion(searchResult.query)
+            .then((question) => {
+              setQuestions((current) => {
+                const others = current.filter(
+                  ({ id }) => id !== question.id,
+                );
+                return [...others, question];
+              });
+            })
+            .catch(() => setError(true))
+            .finally(() => setBusy(false));
+        }}
+        onOpenQuestions={() => {
+          setBusy(true);
+          void api
+            .getQuestions()
+            .then((nextQuestions) => {
+              setQuestions(nextQuestions);
+              setView('questions');
+            })
+            .catch(() => setError(true))
+            .finally(() => setBusy(false));
+        }}
+        onAdvance={() => {
+          setBusy(true);
+          void api
+            .advanceRestrictionPhase()
+            .then((nextGuidance) => {
+              setGuidance(nextGuidance);
+              setSearchResult(null);
+            })
+            .catch(() => setError(true))
+            .finally(() => setBusy(false));
+        }}
+      />
+    );
+  }
+
+  if (view === 'questions') {
+    return (
+      <SavedQuestionsScreen
+        questions={questions}
+        busy={busy}
+        onBack={() => setView('restrictions')}
+        onComplete={(questionId) => {
+          setBusy(true);
+          void api
+            .completeQuestion(questionId)
+            .then((completed) => {
+              setQuestions((current) =>
+                current.map((question) =>
+                  question.id === completed.id ? completed : question,
+                ),
+              );
+            })
+            .catch(() => setError(true))
+            .finally(() => setBusy(false));
+        }}
+      />
+    );
+  }
+
   return (
     <CaregiverHomeScreen
       journey={journey}
+      guidance={guidance}
       busy={busy}
       demoMode={demoMode}
       onOpenProgress={() => setView('progress')}
       onOpenTask={() => setView('task')}
       onOpenSummary={() => setView('summary')}
+      onOpenRestrictions={() => setView('restrictions')}
+      onSelectScenario={(scenarioId) => {
+        setBusy(true);
+        void api
+          .selectScenario(scenarioId)
+          .then((nextJourney) => {
+            setJourney(nextJourney);
+            setGuidance(null);
+            setSearchResult(null);
+            setQuestions([]);
+            setView('home');
+          })
+          .catch(() => setError(true))
+          .finally(() => setBusy(false));
+      }}
       onAdvance={() => {
         setBusy(true);
         void api

@@ -1,5 +1,10 @@
 import { z } from 'zod';
 
+export const DemoScenarioIdSchema = z.enum([
+  'gastric-surgery',
+  'morning-colonoscopy',
+]);
+
 export const TreatmentStageSchema = z.enum([
   'PREPARING',
   'IN_OPERATING_ROOM',
@@ -66,6 +71,7 @@ const ClinicalSummarySchema = z.discriminatedUnion('status', [
 
 export const CaregiverJourneySchema = z.object({
   id: z.string().min(1),
+  scenarioId: DemoScenarioIdSchema,
   linked: z.boolean(),
   patient: PatientSchema,
   caregiver: CaregiverSchema,
@@ -80,6 +86,7 @@ export const CaregiverJourneyResponseSchema = z.object({
 });
 
 export type TreatmentStage = z.infer<typeof TreatmentStageSchema>;
+export type DemoScenarioId = z.infer<typeof DemoScenarioIdSchema>;
 export type CaregiverTaskStatus = z.infer<typeof CaregiverTaskStatusSchema>;
 export type CaregiverJourney = z.infer<typeof CaregiverJourneySchema>;
 export type CaregiverJourneyResponse = z.infer<

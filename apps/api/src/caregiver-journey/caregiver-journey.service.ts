@@ -1,6 +1,7 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import type {
   CaregiverJourney,
+  DemoScenarioId,
   TreatmentStage,
 } from '@ready-on/contracts';
 import {
@@ -74,6 +75,10 @@ export class CaregiverJourneyService {
       ...journey,
       linked: true,
     });
+  }
+
+  selectDemoScenario(scenarioId: DemoScenarioId) {
+    return this.repository.resetDemo(scenarioId);
   }
 
   async completeTask(taskId: string) {

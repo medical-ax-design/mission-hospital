@@ -1,12 +1,14 @@
 import {
   CaregiverJourneySchema,
   type CaregiverJourney,
+  type DemoScenarioId,
 } from '@ready-on/contracts';
 import type { CaregiverJourneyRepository } from './caregiver-journey.repository.js';
 
-function createDemoJourney(): CaregiverJourney {
+function createSurgeryJourney(): CaregiverJourney {
   return CaregiverJourneySchema.parse({
     id: 'demo',
+    scenarioId: 'gastric-surgery',
     linked: false,
     patient: {
       id: 'patient-demo',
@@ -50,10 +52,47 @@ function createDemoJourney(): CaregiverJourney {
   });
 }
 
+function createColonoscopyJourney(): CaregiverJourney {
+  return CaregiverJourneySchema.parse({
+    id: 'demo',
+    scenarioId: 'morning-colonoscopy',
+    linked: false,
+    patient: {
+      id: 'patient-colonoscopy-demo',
+      displayName: '박영희',
+      age: 67,
+      procedureName: '오전 대장내시경',
+      scheduledAt: '2026-07-31T00:00:00.000Z',
+    },
+    caregiver: {
+      displayName: '이민수',
+      relationship: '아들',
+    },
+    treatment: {
+      stage: 'PREPARING',
+      label: '검사 준비 중',
+      updatedAt: '2026-07-28T00:00:00.000Z',
+      nextNotice: '현재 단계의 음식·행동 제한을 확인해 주세요.',
+    },
+    task: null,
+    guide: null,
+    summary: {
+      status: 'UNAVAILABLE',
+    },
+  });
+}
+
+function createDemoJourney(scenarioId: DemoScenarioId) {
+  return scenarioId === 'morning-colonoscopy'
+    ? createColonoscopyJourney()
+    : createSurgeryJourney();
+}
+
 export class MemoryCaregiverJourneyRepository
   implements CaregiverJourneyRepository
 {
-  private journey = createDemoJourney();
+  private journey = createDemoJourney('gastric-surgery');
+  private scenarioRevision = 0;
 
   async getDemo() {
     return structuredClone(this.journey);
@@ -62,5 +101,15 @@ export class MemoryCaregiverJourneyRepository
   async saveDemo(journey: CaregiverJourney) {
     this.journey = CaregiverJourneySchema.parse(journey);
     return structuredClone(this.journey);
+  }
+
+  async resetDemo(scenarioId: DemoScenarioId) {
+    this.journey = createDemoJourney(scenarioId);
+    this.scenarioRevision += 1;
+    return structuredClone(this.journey);
+  }
+
+  getDemoScenarioRevision() {
+    return this.scenarioRevision;
   }
 }
