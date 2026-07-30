@@ -3,6 +3,23 @@
 import { useEffect, useRef, useState } from 'react';
 import type { TreatmentStagePresentation } from '../treatment-stage-presentation';
 
+interface SaveDataConnection {
+  saveData?: boolean;
+  addEventListener?: (type: 'change', listener: () => void) => void;
+  removeEventListener?: (type: 'change', listener: () => void) => void;
+}
+
+function getSaveDataConnection() {
+  if (typeof navigator === 'undefined') {
+    return undefined;
+  }
+  return (
+    navigator as Navigator & {
+      connection?: SaveDataConnection;
+    }
+  ).connection;
+}
+
 function getReducedMotionPreference() {
   return (
     typeof window !== 'undefined' &&
@@ -21,9 +38,11 @@ export function TreatmentStageMedia({
     getReducedMotionPreference,
   );
   const [playing, setPlaying] = useState(() => !reducedMotion);
+  const [saveData, setSaveData] = useState(true);
   const [posterFailed, setPosterFailed] = useState(false);
   const [videoFailed, setVideoFailed] = useState(false);
-  const hasVideo = Boolean(content.videoSources?.length) && !videoFailed;
+  const hasVideo =
+    Boolean(content.videoSources?.length) && !videoFailed && !saveData;
 
   useEffect(() => {
     if (typeof window.matchMedia !== 'function') return;
@@ -37,6 +56,25 @@ export function TreatmentStageMedia({
     };
     query.addEventListener('change', handleChange);
     return () => query.removeEventListener('change', handleChange);
+  }, []);
+
+  useEffect(() => {
+    const connection = getSaveDataConnection();
+    const handleChange = () => {
+      const saveDataEnabled = Boolean(connection?.saveData);
+      setSaveData(saveDataEnabled);
+      if (saveDataEnabled) {
+        setPlaying(false);
+      }
+    };
+
+    handleChange();
+    if (typeof connection?.addEventListener !== 'function') {
+      return;
+    }
+
+    connection.addEventListener('change', handleChange);
+    return () => connection.removeEventListener?.('change', handleChange);
   }, []);
 
   const togglePlayback = () => {
@@ -67,7 +105,7 @@ export function TreatmentStageMedia({
         {hasVideo ? (
           <video
             ref={videoRef}
-            autoPlay={!reducedMotion}
+            autoPlay={!reducedMotion && !saveData}
             loop
             muted
             playsInline
@@ -80,9 +118,11 @@ export function TreatmentStageMedia({
           </video>
         ) : posterFailed ? (
           <div
-            className="treatment-media__fallback"
+            className={`treatment-media__fallback treatment-media__fallback--${content.motionVariant}`}
             aria-label={`${content.timelineLabel} 단계 기본 안내 장면`}
-          />
+          >
+            <span>{content.timelineLabel}</span>
+          </div>
         ) : (
           <img
             alt={`${content.timelineLabel} 일반 과정 AI 재구성 장면`}

@@ -119,6 +119,58 @@ describe('useTreatmentDemoStage', () => {
     expect(result.current.isAutoPlaying).toBe(false);
   });
 
+  it('stops automatic progress when reduced motion is enabled at runtime', () => {
+    let reducedMotion = false;
+    const listeners = new Set<() => void>();
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      value: vi.fn().mockReturnValue({
+        get matches() {
+          return reducedMotion;
+        },
+        addEventListener: (
+          _event: string,
+          listener: () => void,
+        ) => listeners.add(listener),
+        removeEventListener: (
+          _event: string,
+          listener: () => void,
+        ) => listeners.delete(listener),
+      }),
+    });
+    const { result } = renderHook(() =>
+      useTreatmentDemoStage('PREPARING', true),
+    );
+
+    act(() => result.current.toggleAutoPlay());
+    expect(result.current.isAutoPlaying).toBe(true);
+
+    act(() => {
+      reducedMotion = true;
+      listeners.forEach((listener) => listener());
+    });
+    expect(result.current.isAutoPlaying).toBe(false);
+
+    act(() => vi.advanceTimersByTime(8_000));
+    expect(result.current.stage).toBe('PREPARING');
+  });
+
+  it('stops automatic progress after a manual stage change', () => {
+    const { result } = renderHook(() =>
+      useTreatmentDemoStage('PREPARING', true),
+    );
+
+    act(() => result.current.toggleAutoPlay());
+    expect(result.current.isAutoPlaying).toBe(true);
+
+    act(() => result.current.goNext());
+    expect(result.current.stage).toBe('IN_OPERATING_ROOM');
+    expect(result.current.isAutoPlaying).toBe(false);
+
+    act(() => vi.advanceTimersByTime(8_000));
+    expect(result.current.stage).toBe('IN_OPERATING_ROOM');
+  });
+
   it('stops automatic progress when the browser tab becomes hidden', () => {
     const { result } = renderHook(() =>
       useTreatmentDemoStage('PREPARING', true),
