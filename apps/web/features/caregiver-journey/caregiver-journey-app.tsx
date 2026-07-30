@@ -7,8 +7,10 @@ import {
   type CaregiverJourneyApi,
 } from './api';
 import { CaregiverHomeScreen } from './components/caregiver-home-screen';
+import { CaregiverTaskScreen } from './components/caregiver-task-screen';
 import { MobileShell } from './components/mobile-shell';
 import { PatientLinkScreen } from './components/patient-link-screen';
+import { PurposeGuideScreen } from './components/purpose-guide-screen';
 import { TreatmentProgressScreen } from './components/treatment-progress-screen';
 
 type JourneyView = 'home' | 'progress' | 'task' | 'guide' | 'summary';
@@ -96,6 +98,37 @@ export function CaregiverJourneyApp({
       <TreatmentProgressScreen
         journey={journey}
         onHome={() => setView('home')}
+      />
+    );
+  }
+
+  if (view === 'task') {
+    return (
+      <CaregiverTaskScreen
+        journey={journey}
+        onHome={() => setView('home')}
+        onStartGuide={() => setView('guide')}
+      />
+    );
+  }
+
+  if (view === 'guide') {
+    return (
+      <PurposeGuideScreen
+        journey={journey}
+        busy={busy}
+        onBack={() => setView('task')}
+        onComplete={() => {
+          setBusy(true);
+          void api
+            .completeTask(journey.task.id)
+            .then((nextJourney) => {
+              setJourney(nextJourney);
+              setView('home');
+            })
+            .catch(() => setError(true))
+            .finally(() => setBusy(false));
+        }}
       />
     );
   }

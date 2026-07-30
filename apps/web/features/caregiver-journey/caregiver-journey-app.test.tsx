@@ -132,6 +132,67 @@ describe('CaregiverJourneyApp', () => {
       screen.getByRole('heading', { name: /수술 준비 중/ }),
     ).toBeInTheDocument();
   });
+
+  it('보호자 업무의 준비물과 경로를 확인하고 완료한다', async () => {
+    const user = userEvent.setup();
+    const completedJourney: CaregiverJourney = {
+      ...unlinkedJourney,
+      linked: true,
+      task: {
+        ...unlinkedJourney.task,
+        status: 'COMPLETED',
+      },
+    };
+    const api = createFakeApi({
+      getDemo: vi.fn().mockResolvedValue({
+        ...unlinkedJourney,
+        linked: true,
+      }),
+      completeTask: vi.fn().mockResolvedValue(completedJourney),
+    });
+
+    render(<CaregiverJourneyApp api={api} />);
+
+    await user.click(
+      await screen.findByRole('button', {
+        name: /입원 서류 발급/,
+      }),
+    );
+
+    expect(
+      screen.getByRole('heading', { name: '입원 서류 발급' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('보호자 신분증')).toBeInTheDocument();
+    expect(screen.getByText('약 15분')).toBeInTheDocument();
+    expect(screen.getByText('번호표 필요 없음')).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole('button', { name: '경로 안내 시작' }),
+    );
+
+    expect(
+      screen.getByRole('heading', {
+        name: '본관 1층 3번 키오스크',
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('중앙 엘리베이터로 이동하세요.'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        '발급되지 않으면 옆 제증명 창구를 방문하세요.',
+      ),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: '업무 완료' }));
+
+    expect(api.completeTask).toHaveBeenCalledWith(
+      'task-admission-docs',
+    );
+    expect(
+      await screen.findByText('업무를 완료했습니다'),
+    ).toBeInTheDocument();
+  });
 });
 
 export { createFakeApi, unlinkedJourney };
