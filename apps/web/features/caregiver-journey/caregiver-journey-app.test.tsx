@@ -666,12 +666,13 @@ describe('CaregiverJourneyApp', () => {
     expect(searchRestrictions).toHaveBeenCalledTimes(2);
   });
 
-  it('이용 안내에서 목적 기반 길찾기와 검사 준비 안내를 구분한다', async () => {
+  it('서류 발급 목적에서 공식 처리 방법을 확인한다', async () => {
     const user = userEvent.setup();
     const api = createFakeApi({
       getDemo: vi.fn().mockResolvedValue({
         ...unlinkedJourney,
         linked: true,
+        guide: null,
       }),
     });
 
@@ -680,31 +681,30 @@ describe('CaregiverJourneyApp', () => {
     await user.click(
       await screen.findByRole('button', { name: '이용 안내' }),
     );
-
     expect(
-      screen.getByRole('heading', { name: '병원 이용 안내' }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: /업무·길찾기/ }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', {
-        name: /환자 일정 장소 길찾기/,
+      await screen.findByRole('heading', {
+        name: '무엇을 하러 가시나요?',
       }),
     ).toBeInTheDocument();
     expect(
-      screen.getByText('검사 준비·주의사항'),
+      screen.getByRole('button', { name: '전체 건물·층별 안내' }),
     ).toBeInTheDocument();
 
-    await user.click(
-      screen.getByRole('button', { name: /업무·길찾기/ }),
+    await user.click(screen.getByRole('button', { name: '서류 발급' }));
+
+    expect(api.searchHospitalGuidePurpose).toHaveBeenCalledWith(
+      '서류 발급',
     );
     expect(
-      screen.getByRole('heading', { name: '입원 서류 발급' }),
+      await screen.findByRole('heading', { name: '서류 발급' }),
     ).toBeInTheDocument();
+    expect(screen.getByText('홈페이지에서 발급')).toBeInTheDocument();
+    expect(screen.getByText('본관 원무 수납에서 확인')).toBeInTheDocument();
+    expect(screen.queryByText(/3번 키오스크|예상 대기/)).not
+      .toBeInTheDocument();
   });
 
-  it('현재 위치와 이동 수단을 선택해 공식 지도 위 경로를 단계별로 본다', async () => {
+  it('이용 안내에서 목적 선택과 전체 층 안내를 구분한다', async () => {
     const user = userEvent.setup();
     const api = createFakeApi({
       getDemo: vi.fn().mockResolvedValue({
@@ -718,40 +718,39 @@ describe('CaregiverJourneyApp', () => {
     await user.click(
       await screen.findByRole('button', { name: '이용 안내' }),
     );
-    await user.click(
-      screen.getByRole('button', {
-        name: /환자 일정 장소 길찾기/,
+
+    expect(
+      screen.getByRole('heading', { name: '무엇을 하러 가시나요?' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: '서류 발급' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: '전체 건물·층별 안내' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /환자 일정 장소 길찾기/ }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('병원 승인 경로가 없는 이용 안내에는 붉은 선을 노출하지 않는다', async () => {
+    const user = userEvent.setup();
+    const api = createFakeApi({
+      getDemo: vi.fn().mockResolvedValue({
+        ...unlinkedJourney,
+        linked: true,
       }),
-    );
+    });
 
-    expect(
-      screen.getByRole('heading', { name: '병원 안 길찾기' }),
-    ).toBeInTheDocument();
-    expect(screen.getByLabelText('현재 건물')).toHaveValue('MAIN');
-    expect(screen.getByText(/암병원 3F/)).toBeInTheDocument();
+    render(<CaregiverJourneyApp api={api} />);
 
     await user.click(
-      screen.getByRole('radio', { name: /엘리베이터/ }),
+      await screen.findByRole('button', { name: '이용 안내' }),
     );
-    await user.click(
-      screen.getByRole('button', { name: '길찾기 시작' }),
-    );
-
+    expect(screen.queryByTestId('route-line')).not.toBeInTheDocument();
     expect(
-      screen.getByRole('img', { name: /삼성서울병원 공식/ }),
-    ).toBeInTheDocument();
-    expect(screen.getByTestId('route-line')).toBeInTheDocument();
-    expect(screen.getByTestId('route-user-marker')).toBeInTheDocument();
-    expect(
-      screen.getByText(/붉은 원은 사용자의 이동 위치/),
-    ).toBeInTheDocument();
-
-    await user.click(
-      screen.getByRole('button', { name: '다음 안내' }),
-    );
-    expect(
-      screen.getByRole('heading', { name: /연결통로|엘리베이터/ }),
-    ).toBeInTheDocument();
+      screen.queryByTestId('route-user-marker'),
+    ).not.toBeInTheDocument();
   });
 });
 

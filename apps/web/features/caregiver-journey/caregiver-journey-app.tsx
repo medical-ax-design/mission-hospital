@@ -2,6 +2,11 @@
 
 import type { CaregiverJourney } from '@ready-on/contracts/caregiver-journey';
 import type {
+  GuideBuildingId,
+  HospitalGuideCatalog,
+  HospitalGuidePurposeResult,
+} from '@ready-on/contracts/hospital-guide';
+import type {
   RestrictionGuidance,
   RestrictionSearchResult,
   SavedQuestion,
@@ -21,8 +26,9 @@ import { PurposeGuideScreen } from './components/purpose-guide-screen';
 import { RestrictionGuidanceScreen } from './components/restriction-guidance-screen';
 import { SavedQuestionsScreen } from './components/saved-questions-screen';
 import { ScheduleScreen } from './components/schedule-screen';
-import { ServiceGuideScreen } from './components/service-guide-screen';
 import { TreatmentProgressScreen } from './components/treatment-progress-screen';
+import { HospitalGuideHomeScreen } from '../hospital-guide/components/hospital-guide-home-screen';
+import { PurposeResultScreen } from '../hospital-guide/components/purpose-result-screen';
 
 type JourneyView =
   | 'home'
@@ -31,6 +37,8 @@ type JourneyView =
   | 'guide'
   | 'schedule'
   | 'service-guide'
+  | 'hospital-purpose'
+  | 'hospital-directory'
   | 'indoor-navigation'
   | 'restrictions'
   | 'questions';
@@ -57,6 +65,10 @@ export function CaregiverJourneyApp({
     useState<RestrictionSearchResult | null>(null);
   const [questions, setQuestions] = useState<SavedQuestion[]>([]);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [hospitalCatalog, setHospitalCatalog] =
+    useState<HospitalGuideCatalog | null>(null);
+  const [hospitalPurpose, setHospitalPurpose] =
+    useState<HospitalGuidePurposeResult | null>(null);
 
   const loadJourney = useCallback(async () => {
     setError(false);
@@ -85,6 +97,17 @@ export function CaregiverJourneyApp({
       setGuidance(null);
     }
   }, [api, journey?.linked, journey?.scenarioId]);
+
+  useEffect(() => {
+    if (view !== 'service-guide' || hospitalCatalog) return;
+
+    setBusy(true);
+    void api
+      .getHospitalGuideCatalog()
+      .then(setHospitalCatalog)
+      .catch(() => setActionError('병원 안내 정보를 불러오지 못했습니다.'))
+      .finally(() => setBusy(false));
+  }, [api, hospitalCatalog, view]);
 
   if (error) {
     return (
@@ -223,14 +246,61 @@ export function CaregiverJourneyApp({
 
   if (view === 'service-guide') {
     return (
-      <ServiceGuideScreen
-        journey={journey}
+      <HospitalGuideHomeScreen
+        catalog={hospitalCatalog}
         guidance={guidance}
-        onOpenTask={() => setView('task')}
-        onOpenNavigation={() => setView('indoor-navigation')}
+        busy={busy}
+        onOpenPurpose={(query) => {
+          setActionError(null);
+          setBusy(true);
+          void api
+            .searchHospitalGuidePurpose(query)
+            .then((result) => {
+              setHospitalPurpose(result);
+              setView('hospital-purpose');
+            })
+            .catch(() =>
+              setActionError('등록된 목적을 찾지 못했습니다.'),
+            )
+            .finally(() => setBusy(false));
+        }}
+        onOpenDirectory={() => setView('hospital-directory')}
         onOpenRestrictions={() => setView('restrictions')}
         onSelectTab={(tab: RootTab) => setView(tab)}
       />
+    );
+  }
+
+  if (view === 'hospital-purpose' && hospitalPurpose) {
+    return (
+      <PurposeResultScreen
+        result={hospitalPurpose}
+        onBack={() => setView('service-guide')}
+        onOpenDirectory={() => setView('hospital-directory')}
+        onOpenPlace={(
+          _buildingId: GuideBuildingId,
+          _floorCode: string,
+          _placeId: string,
+        ) => setView('hospital-directory')}
+      />
+    );
+  }
+
+  if (view === 'hospital-directory') {
+    return (
+      <MobileShell compactHeader>
+        <main className="screen state-screen">
+          <h1>전체 건물·층별 안내</h1>
+          <p>공식 전체 층 정보를 준비하고 있습니다.</p>
+          <button
+            className="primary-button"
+            onClick={() => setView('service-guide')}
+            type="button"
+          >
+            이용 안내로 돌아가기
+          </button>
+        </main>
+      </MobileShell>
     );
   }
 
