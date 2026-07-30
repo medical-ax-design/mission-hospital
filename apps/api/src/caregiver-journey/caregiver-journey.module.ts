@@ -13,5 +13,6 @@ import { MemoryCaregiverJourneyRepository } from './memory-caregiver-journey.rep
       useClass: MemoryCaregiverJourneyRepository,
     },
   ],
+  exports: [CaregiverJourneyService, CAREGIVER_JOURNEY_REPOSITORY],
 })
 export class CaregiverJourneyModule {}

@@ -6,9 +6,9 @@
 기술 상태를 설명한다. 기능 계획보다 실제 코드, 공유 Zod 계약과
 자동화 테스트를 우선한다.
 
-현재 제품 범위는 암 수술 환자의 보호자가 가상 환자를 연결하고,
-병원이 확인한 치료 단계와 보호자 업무, 목적 기반 이동 안내,
-의료진 확인 요약을 순서대로 확인하는 여정이다.
+현재 제품 범위는 암 수술 또는 건강검진 오전 대장내시경 가상 환자의 보호자가
+여정을 연결하고, 병원이 확인한 상태와 보호자 업무, 목적 기반 이동
+안내, 의료진 확인 요약 또는 검사 제한 안내를 확인하는 흐름이다.
 
 ## 2. 모노레포 구성
 
@@ -26,8 +26,9 @@
 
 1. Web이 `NEXT_PUBLIC_API_BASE_URL`의 NestJS API를 호출한다.
 2. API가 `MemoryCaregiverJourneyRepository`에서 가상 여정을
-   읽거나 변경한다.
-3. Web은 모든 응답을 `CaregiverJourneyResponseSchema`로 검증한다.
+   읽거나 변경하고 `RestrictionGuidanceService`에서 대장내시경
+   제한 단계와 질문을 관리한다.
+3. Web은 모든 응답을 해당 공유 Zod 스키마로 검증한다.
 4. 연결, 업무 완료와 발표 단계 전환 결과를 화면 상태에 반영한다.
 5. 치료 시각은 `Asia/Seoul` 기준으로 표시한다.
 
@@ -42,11 +43,21 @@
 | `POST` | `/caregiver-journeys/demo/link` | 가상 환자와 보호자 연결 |
 | `POST` | `/caregiver-journeys/demo/tasks/{taskId}/complete` | 보호자 업무 완료 |
 | `POST` | `/caregiver-journeys/demo/advance` | 발표용 치료 단계 전환 |
+| `POST` | `/caregiver-journeys/demo/scenarios/{scenarioId}/select` | 가상 시나리오 선택 |
+| `GET` | `/caregiver-journeys/demo/restrictions` | 현재 공식 제한 목록 |
+| `GET` | `/caregiver-journeys/demo/restrictions/search?q=` | 음식·행동 제한 검색 |
+| `POST` | `/caregiver-journeys/demo/restrictions/advance` | 제한 단계 전환 |
+| `GET` | `/caregiver-journeys/demo/questions` | 저장 질문 조회 |
+| `POST` | `/caregiver-journeys/demo/questions` | 질문 저장 |
+| `POST` | `/caregiver-journeys/demo/questions/{id}/complete` | 질문 확인 완료 |
+| `DELETE` | `/caregiver-journeys/demo/questions/{id}` | 질문 삭제 |
 | `GET` | `/health/live` | API 프로세스 생존 확인 |
 | `GET` | `/health/ready` | API 준비 상태 확인 |
 
 보호자 여정의 실행 계약은
-`packages/contracts/src/caregiver-journey.ts`가 정의한다. 현재 업무,
+`packages/contracts/src/caregiver-journey.ts`가 정의한다. 제한 안내와
+질문 계약은 `packages/contracts/src/restriction-guidance.ts`가
+정의한다. 현재 업무,
 이동 안내 또는 병원 확인 시각이 없을 때는 `null`을 사용하며 Web은
 임의 정보를 만들지 않고 빈 상태를 표시한다.
 
@@ -55,8 +66,8 @@
 ### 보호자 여정
 
 현재 API는 메모리 저장소를 사용한다. API 프로세스를 재시작하면
-환자 연결, 치료 단계와 업무 완료 상태가 초기 가상 시나리오로
-돌아간다. 실제 환자정보는 저장하지 않는다.
+환자 연결, 치료 단계, 업무 완료, 제한 단계와 질문 상태가 초기 가상
+시나리오로 돌아간다. 실제 환자정보는 저장하지 않는다.
 
 ### 검사·수술 카탈로그 기반
 
@@ -81,6 +92,13 @@ REST API는 아니다. 보호자 여정도 아직 PostgreSQL에 저장하지 않
   연결하지 않았다.
 - AI가 진단, 치료 판단 또는 의료지침을 생성하지 않는다.
 - 의료진 확인 전에는 진료 내용 요약을 표시하지 않는다.
+- 제한 검색은 `DO_NOT_PROVIDE`와 `CHECK_BEFORE_PROVIDING`만
+  반환하며 섭취 또는 행동을 허가하지 않는다.
+- 절대 금식 시작 시각은 공식 공개 안내의 검사 당일 오전 5시를
+  사용하며, 자정 이후 금식과 장 정결제 복용 구간을 혼동하지 않는다.
+- 제한 규칙은 사전 구조화한 삼성서울병원 공개 안내의 가상
+  데이터이며 실제 병원 승인 콘텐츠 연동이 아니다.
+- 질문은 의료진에게 자동 전송하지 않고 답변을 저장하지 않는다.
 - 가족 공유는 외부 전송이 없는 화면 미리보기다.
 
 제품화 전 필수 보안 기준은
@@ -134,3 +152,18 @@ Vercel Web, OCI API, Supabase PostgreSQL은 목표 인프라 구성이다.
 - 실내 지도와 접근 가능한 이동 경로
 - 의료진 확인 기록 수신
 - 실제 가족 공유와 감사 로그
+
+### 실내 길찾기 권장 구조
+
+공개 층별 안내 이미지는 공간 그래프나 실시간 위치 데이터가 아니다.
+제품화 시 지도 화면과 경로 계산을 분리한다.
+
+- `Place`: 건물, 층, 검사실, 창구, 엘리베이터와 랜드마크
+- `RouteNode`·`RouteEdge`: 이동 가능한 지점과 연결 관계
+- `MapVersion`: 공사·이전 정보를 포함한 유효기간과 승인 상태
+- `LocationFix`: 사용자가 선택했거나 QR·비콘 등으로 확인한 출발점
+- `RoutePolicy`: 휠체어 경로, 직원 통제구역과 임시 폐쇄 조건
+
+첫 프로토타입은 사용자가 건물·층·랜드마크를 선택한 `LocationFix`와
+고정된 가상 경로 그래프를 사용한다. 자동 실내 위치는 별도 병원
+인프라와 정확도 검증 없이는 구현된 것으로 표시하지 않는다.

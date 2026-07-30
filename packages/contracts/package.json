@@ -5,7 +5,8 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./caregiver-journey": "./src/caregiver-journey.ts"
+    "./caregiver-journey": "./src/caregiver-journey.ts",
+    "./restriction-guidance": "./src/restriction-guidance.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"

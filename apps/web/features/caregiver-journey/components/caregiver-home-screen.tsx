@@ -1,24 +1,34 @@
-import type { CaregiverJourney } from '@ready-on/contracts/caregiver-journey';
+import type {
+  CaregiverJourney,
+  DemoScenarioId,
+} from '@ready-on/contracts/caregiver-journey';
+import type { RestrictionGuidance } from '@ready-on/contracts/restriction-guidance';
 import { formatHospitalTime } from '../format-hospital-time';
 import { MobileShell } from './mobile-shell';
 
 interface CaregiverHomeScreenProps {
   journey: CaregiverJourney;
+  guidance: RestrictionGuidance | null;
   busy: boolean;
   demoMode: boolean;
   onOpenProgress: () => void;
   onOpenTask: () => void;
   onOpenSummary: () => void;
+  onOpenRestrictions: () => void;
+  onSelectScenario: (scenarioId: DemoScenarioId) => void;
   onAdvance: () => void;
 }
 
 export function CaregiverHomeScreen({
   journey,
+  guidance,
   busy,
   demoMode,
   onOpenProgress,
   onOpenTask,
   onOpenSummary,
+  onOpenRestrictions,
+  onSelectScenario,
   onAdvance,
 }: CaregiverHomeScreenProps) {
   const taskCompleted = journey.task?.status === 'COMPLETED';
@@ -57,15 +67,36 @@ export function CaregiverHomeScreen({
             지금은 <strong>{journey.treatment.label}</strong>입니다
           </h1>
           <p>{journey.treatment.nextNotice}</p>
-          <button
-            className="secondary-button secondary-button--on-dark"
-            onClick={onOpenProgress}
-            type="button"
-          >
-            과정 알아보기
-            <span aria-hidden="true">→</span>
-          </button>
+          {journey.scenarioId === 'gastric-surgery' && (
+            <button
+              className="secondary-button secondary-button--on-dark"
+              onClick={onOpenProgress}
+              type="button"
+            >
+              과정 알아보기
+              <span aria-hidden="true">→</span>
+            </button>
+          )}
         </section>
+
+        {guidance && (
+          <section
+            className="restriction-card"
+            aria-labelledby="current-restrictions"
+          >
+            <p className="eyebrow">{guidance.phase.label}</p>
+            <h2 id="current-restrictions">현재 주의사항</h2>
+            <p>{guidance.headline}</p>
+            <small>{guidance.phase.effectiveText}</small>
+            <button
+              className="primary-button"
+              onClick={onOpenRestrictions}
+              type="button"
+            >
+              지금 피해야 할 것 보기
+            </button>
+          </section>
+        )}
 
         <section className="section-block" aria-labelledby="caregiver-task">
           <div className="section-heading">
@@ -146,12 +177,28 @@ export function CaregiverHomeScreen({
               <strong>발표자 도구</strong>
               <small>실제 사용자에게는 보이지 않습니다</small>
             </div>
+            {journey.scenarioId === 'gastric-surgery' && (
+              <button
+                disabled={busy}
+                onClick={onAdvance}
+                type="button"
+              >
+                {busy ? '전환 중' : '다음 단계로 전환'}
+              </button>
+            )}
             <button
               disabled={busy}
-              onClick={onAdvance}
+              onClick={() => onSelectScenario('gastric-surgery')}
               type="button"
             >
-              {busy ? '전환 중' : '다음 단계로 전환'}
+              위암 수술 여정
+            </button>
+            <button
+              disabled={busy}
+              onClick={() => onSelectScenario('morning-colonoscopy')}
+              type="button"
+            >
+              대장내시경 여정
             </button>
           </aside>
         )}

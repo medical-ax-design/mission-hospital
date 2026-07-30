@@ -11,21 +11,25 @@
 
 1. [`PRODUCT_BRIEF.md`](./PRODUCT_BRIEF.md): 제품의 존재 이유와 경계
 2. [`PRD.md`](./PRD.md): 기능 범위와 인수 조건
-3. [`UX_SPEC.md`](./UX_SPEC.md): 화면과 사용자 상호작용
-4. [`TECHNICAL_OVERVIEW.md`](./TECHNICAL_OVERVIEW.md): 현재 구현 상태
-5. [`SECURITY_PRIVACY.md`](./SECURITY_PRIVACY.md): 제품화 안전 기준
-6. [`REFERENCES.md`](./REFERENCES.md): 조사와 기술 근거
+3. [`DOMAIN_MODEL.md`](./DOMAIN_MODEL.md): 상태와 불변 규칙
+4. [`UX_SPEC.md`](./UX_SPEC.md): 화면과 사용자 상호작용
+5. [`API_SPEC.md`](./API_SPEC.md): 현재 HTTP 계약
+6. [`TECHNICAL_OVERVIEW.md`](./TECHNICAL_OVERVIEW.md): 현재 구현 상태
+7. [`SECURITY_PRIVACY.md`](./SECURITY_PRIVACY.md): 제품화 안전 기준
+8. [`REFERENCES.md`](./REFERENCES.md): 조사와 기술 근거
 
 ## 제품 문서
 
 - [`PRODUCT_BRIEF.md`](./PRODUCT_BRIEF.md): 제품 개요, 문제, 사용자와 가치
 - [`PRD.md`](./PRD.md): 제품 요구사항과 MVP 범위
 - [`UX_SPEC.md`](./UX_SPEC.md): 보호자 사용자 흐름과 화면 명세
+- [`DOMAIN_MODEL.md`](./DOMAIN_MODEL.md): 보호자 여정, 제한 안내와 질문 상태 규칙
 
 ## 기술·안전·근거
 
 - [`TECHNICAL_OVERVIEW.md`](./TECHNICAL_OVERVIEW.md): 실제 코드 기준
   아키텍처, API, 저장소와 실행 방법
+- [`API_SPEC.md`](./API_SPEC.md): 구현된 보호자 여정·제한 안내 HTTP 계약
 - [`SECURITY_PRIVACY.md`](./SECURITY_PRIVACY.md): 인증, 권한, 감사와 개인정보 기준
 - [`REFERENCES.md`](./REFERENCES.md): 제품·의료 콘텐츠·기술 근거
 
@@ -52,3 +56,13 @@
 - 기능 요구사항에는 고유 ID를 붙인다.
 - 결정이 필요한 내용은 숨기지 않고 의사결정 항목으로 표시한다.
 - 실제 환자정보를 사용하는 기능은 별도 보안·법무 검토 전 구현 범위에 포함하지 않는다.
+
+## 문서 변경 방식
+
+- 계획서만 별도 PR로 병합하지 않는다.
+- 기능을 구현하는 PR에서 관련 정식 문서도 함께 갱신한다.
+- 제품 범위는 `PRODUCT_BRIEF.md`와 `PRD.md`, 화면은 `UX_SPEC.md`,
+  상태 규칙은 `DOMAIN_MODEL.md`, 실행 계약은 `API_SPEC.md`에 기록한다.
+- 구현 중 임시 작업 계획은 저장소 문서 목차에 추가하지 않는다.
+- 설계 기록은 구현 완료 후 현재 문서와 충돌하지 않도록
+  `archive/process`로 이동하거나 제거한다.

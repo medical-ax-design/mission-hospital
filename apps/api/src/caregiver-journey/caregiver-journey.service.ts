@@ -1,6 +1,12 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import type {
   CaregiverJourney,
+  DemoScenarioId,
   TreatmentStage,
 } from '@ready-on/contracts';
 import {
@@ -76,6 +82,10 @@ export class CaregiverJourneyService {
     });
   }
 
+  selectDemoScenario(scenarioId: DemoScenarioId) {
+    return this.repository.resetDemo(scenarioId);
+  }
+
   async completeTask(taskId: string) {
     const journey = await this.repository.getDemo();
 
@@ -94,6 +104,11 @@ export class CaregiverJourneyService {
 
   async advanceDemo() {
     const journey = await this.repository.getDemo();
+    if (journey.scenarioId !== 'gastric-surgery') {
+      throw new BadRequestException(
+        '수술 시나리오에서만 치료 단계를 전환할 수 있습니다.',
+      );
+    }
     const currentIndex = stageOrder.indexOf(journey.treatment.stage);
     const nextStage =
       stageOrder[currentIndex + 1] ?? journey.treatment.stage;
