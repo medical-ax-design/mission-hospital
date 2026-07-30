@@ -8,6 +8,7 @@ interface FloorDetailScreenProps {
   building: GuideBuilding;
   floor: GuideFloor;
   selectedPlaceId: string | null;
+  onNavigate: (placeId: string) => void;
 }
 
 function placeLabel(
@@ -23,8 +24,12 @@ export function FloorDetailScreen({
   building,
   floor,
   selectedPlaceId,
+  onNavigate,
 }: FloorDetailScreenProps) {
   const [mapFailed, setMapFailed] = useState(false);
+  const selectedPlace = floor.places.find(
+    ({ id }) => id === selectedPlaceId,
+  );
 
   return (
     <section className="floor-detail" aria-labelledby="floor-detail-title">
@@ -88,6 +93,16 @@ export function FloorDetailScreen({
           </p>
         )}
       </section>
+
+      {selectedPlace && (
+        <button
+          className="primary-button floor-detail__navigation"
+          onClick={() => onNavigate(selectedPlace.id)}
+          type="button"
+        >
+          공식 지도에서 위치 확인
+        </button>
+      )}
 
       <a
         className="official-source"

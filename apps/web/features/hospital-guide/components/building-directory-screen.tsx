@@ -17,6 +17,7 @@ interface BuildingDirectoryScreenProps {
   catalog: HospitalGuideCatalog;
   initialTarget: HospitalGuideTarget | null;
   onBack: () => void;
+  onNavigate: (target: HospitalGuideTarget) => void;
 }
 
 function firstOrThrow<T>(items: T[], message: string): T {
@@ -29,6 +30,7 @@ export function BuildingDirectoryScreen({
   catalog,
   initialTarget,
   onBack,
+  onNavigate,
 }: BuildingDirectoryScreenProps) {
   const defaultBuilding = firstOrThrow(
     catalog.buildings,
@@ -216,6 +218,13 @@ export function BuildingDirectoryScreen({
         <FloorDetailScreen
           building={building}
           floor={floor}
+          onNavigate={(placeId) =>
+            onNavigate({
+              buildingId: building.id,
+              floorCode: floor.code,
+              placeId,
+            })
+          }
           selectedPlaceId={selectedPlaceId}
         />
       </main>

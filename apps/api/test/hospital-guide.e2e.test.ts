@@ -50,6 +50,6 @@ describe('hospital guide API', () => {
     expect(result.purpose.id).toBe('document-issuance');
     expect(result.places.some(({ buildingId }) => buildingId === 'MAIN'))
       .toBe(true);
-    expect(JSON.stringify(result)).not.toContain('3번 키오스크');
+    expect(JSON.stringify(result)).not.toContain('키오스크');
   });
 });

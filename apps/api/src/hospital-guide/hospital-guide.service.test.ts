@@ -74,7 +74,7 @@ describe('HospitalGuideService', () => {
         }),
       ]),
     );
-    expect(JSON.stringify(mainFirstFloor)).not.toContain('3번 키오스크');
+    expect(JSON.stringify(mainFirstFloor)).not.toContain('키오스크');
   });
 
   it('카탈로그 복사본을 반환해 호출자 변경이 원본에 남지 않는다', () => {
@@ -99,7 +99,7 @@ describe('HospitalGuideService', () => {
         }),
       ]),
     );
-    expect(JSON.stringify(result)).not.toContain('3번 키오스크');
+    expect(JSON.stringify(result)).not.toContain('키오스크');
   });
 
   it('보호자 방문 발급에 공식 구비서류를 안내한다', () => {

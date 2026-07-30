@@ -41,21 +41,7 @@ const unlinkedJourney: CaregiverJourney = {
     estimatedMinutes: 15,
     requiredItems: ['보호자 신분증'],
   },
-  guide: {
-    currentLocation: '수술 대기실',
-    destination: '본관 1층 3번 키오스크',
-    building: 'MAIN',
-    floor: '1F',
-    location: '3번 키오스크',
-    estimatedTravelMinutes: 6,
-    ticketRequired: false,
-    steps: [
-      '중앙 엘리베이터로 이동하세요.',
-      '1층에서 원무 방향으로 이동하세요.',
-      '3번 키오스크에서 제증명 발급을 선택하세요.',
-    ],
-    fallback: '발급되지 않으면 옆 제증명 창구를 방문하세요.',
-  },
+  guide: null,
   schedules: [
     {
       id: 'schedule-admission',
@@ -259,7 +245,7 @@ describe('CaregiverJourneyApp', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('이동 안내가 없으면 경로를 만들지 않고 안내 데스크를 안내한다', async () => {
+  it('보호자 업무에서 공식 처리 방법으로 연결하고 임의 경로를 만들지 않는다', async () => {
     const user = userEvent.setup();
     const api = createFakeApi({
       getDemo: vi.fn().mockResolvedValue({
@@ -274,18 +260,16 @@ describe('CaregiverJourneyApp', () => {
     await user.click(
       await screen.findByRole('button', { name: /입원 서류 발급/ }),
     );
-    await user.click(
-      screen.getByRole('button', { name: '경로 안내 시작' }),
-    );
+    await user.click(screen.getByRole('button', {
+      name: '공식 처리 방법 확인',
+    }));
 
     expect(
       screen.getByRole('heading', {
-        name: '등록된 이동 안내가 없습니다.',
+        name: '서류 발급',
       }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText('가까운 안내 데스크에 문의해 주세요.'),
-    ).toBeInTheDocument();
+    expect(screen.queryByTestId('route-line')).not.toBeInTheDocument();
   });
 
   it('병원이 확인한 상태와 일반 과정을 구분해 설명한다', async () => {
@@ -317,22 +301,13 @@ describe('CaregiverJourneyApp', () => {
     ).toBeInTheDocument();
   });
 
-  it('보호자 업무의 준비물과 경로를 확인하고 완료한다', async () => {
+  it('보호자 업무의 준비물과 공식 서류 처리 방법을 확인한다', async () => {
     const user = userEvent.setup();
-    const completedJourney: CaregiverJourney = {
-      ...unlinkedJourney,
-      linked: true,
-      task: {
-        ...unlinkedJourney.task!,
-        status: 'COMPLETED',
-      },
-    };
     const api = createFakeApi({
       getDemo: vi.fn().mockResolvedValue({
         ...unlinkedJourney,
         linked: true,
       }),
-      completeTask: vi.fn().mockResolvedValue(completedJourney),
     });
 
     render(<CaregiverJourneyApp api={api} />);
@@ -347,35 +322,18 @@ describe('CaregiverJourneyApp', () => {
       screen.getByRole('heading', { name: '입원 서류 발급' }),
     ).toBeInTheDocument();
     expect(screen.getByText('보호자 신분증')).toBeInTheDocument();
-    expect(screen.getByText('약 15분')).toBeInTheDocument();
-    expect(screen.getByText('번호표 필요 없음')).toBeInTheDocument();
 
     await user.click(
-      screen.getByRole('button', { name: '경로 안내 시작' }),
+      screen.getByRole('button', { name: '공식 처리 방법 확인' }),
     );
 
     expect(
       screen.getByRole('heading', {
-        name: '병원 안 길찾기',
+        name: '서류 발급',
       }),
     ).toBeInTheDocument();
-    expect(screen.getByText('3번 키오스크')).toBeInTheDocument();
-    expect(
-      screen.queryByRole('group', { name: '층 이동 방법' }),
-    ).not.toBeInTheDocument();
-
-    await user.click(
-      screen.getByRole('button', { name: '길찾기 시작' }),
-    );
-
-    await user.click(screen.getByRole('button', { name: '업무 완료' }));
-
-    expect(api.completeTask).toHaveBeenCalledWith(
-      'task-admission-docs',
-    );
-    expect(
-      await screen.findByText('업무를 완료했습니다'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('홈페이지에서 발급')).toBeInTheDocument();
+    expect(screen.getByText('본관 원무 수납에서 확인')).toBeInTheDocument();
   });
 
   it('발표 모드에서만 병원 확인 단계를 전환한다', async () => {
@@ -700,7 +658,7 @@ describe('CaregiverJourneyApp', () => {
     ).toBeInTheDocument();
     expect(screen.getByText('홈페이지에서 발급')).toBeInTheDocument();
     expect(screen.getByText('본관 원무 수납에서 확인')).toBeInTheDocument();
-    expect(screen.queryByText(/3번 키오스크|예상 대기/)).not
+    expect(screen.queryByText(/키오스크|예상 대기/)).not
       .toBeInTheDocument();
   });
 
@@ -828,6 +786,18 @@ describe('CaregiverJourneyApp', () => {
       screen.getByRole('heading', { name: '본관 1층' }),
     ).toBeInTheDocument();
     expect(screen.getByText('25. 원무수납/접수')).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole('button', {
+        name: '공식 지도에서 위치 확인',
+      }),
+    );
+    expect(
+      screen.getByRole('heading', {
+        name: '공식 지도에서 위치를 확인하세요',
+      }),
+    ).toBeInTheDocument();
+    expect(screen.queryByTestId('route-line')).not.toBeInTheDocument();
   });
 });
 

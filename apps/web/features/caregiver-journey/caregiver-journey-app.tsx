@@ -19,10 +19,8 @@ import {
 import { CaregiverHomeScreen } from './components/caregiver-home-screen';
 import { CaregiverTaskScreen } from './components/caregiver-task-screen';
 import type { RootTab } from './components/bottom-navigation';
-import { IndoorNavigationScreen } from './components/indoor-navigation-screen';
 import { MobileShell } from './components/mobile-shell';
 import { PatientLinkScreen } from './components/patient-link-screen';
-import { PurposeGuideScreen } from './components/purpose-guide-screen';
 import { RestrictionGuidanceScreen } from './components/restriction-guidance-screen';
 import { SavedQuestionsScreen } from './components/saved-questions-screen';
 import { ScheduleScreen } from './components/schedule-screen';
@@ -33,17 +31,18 @@ import {
   BuildingDirectoryScreen,
   type HospitalGuideTarget,
 } from '../hospital-guide/components/building-directory-screen';
+import { SafeNavigationScreen } from '../hospital-guide/components/safe-navigation-screen';
+import { getRouteAvailability } from '../hospital-guide/hospital-guide-model';
 
 type JourneyView =
   | 'home'
   | 'progress'
   | 'task'
-  | 'guide'
   | 'schedule'
   | 'service-guide'
   | 'hospital-purpose'
   | 'hospital-directory'
-  | 'indoor-navigation'
+  | 'safe-navigation'
   | 'restrictions'
   | 'questions';
 
@@ -75,6 +74,27 @@ export function CaregiverJourneyApp({
     useState<HospitalGuidePurposeResult | null>(null);
   const [hospitalGuideTarget, setHospitalGuideTarget] =
     useState<HospitalGuideTarget | null>(null);
+
+  const openHospitalPurpose = (query: string) => {
+    setActionError(null);
+    setBusy(true);
+
+    const catalogRequest = hospitalCatalog
+      ? Promise.resolve(hospitalCatalog)
+      : api.getHospitalGuideCatalog();
+
+    void Promise.all([
+      catalogRequest,
+      api.searchHospitalGuidePurpose(query),
+    ])
+      .then(([catalog, result]) => {
+        setHospitalCatalog(catalog);
+        setHospitalPurpose(result);
+        setView('hospital-purpose');
+      })
+      .catch(() => setActionError('등록된 목적을 찾지 못했습니다.'))
+      .finally(() => setBusy(false));
+  };
 
   const loadJourney = useCallback(async () => {
     setError(false);
@@ -178,65 +198,7 @@ export function CaregiverJourneyApp({
       <CaregiverTaskScreen
         journey={journey}
         onHome={() => setView('home')}
-        onStartGuide={() => setView('guide')}
-      />
-    );
-  }
-
-  if (view === 'guide') {
-    if (journey.guide) {
-      return (
-        <IndoorNavigationScreen
-          journey={journey}
-          destination={{
-            building: journey.guide.building,
-            floor: journey.guide.floor,
-            landmark: journey.guide.location,
-          }}
-          busy={busy}
-          completionLabel="업무 완료"
-          onBack={() => setView('task')}
-          onComplete={() => {
-            if (!journey.task) {
-              setView('home');
-              return;
-            }
-
-            setBusy(true);
-            void api
-              .completeTask(journey.task.id)
-              .then((nextJourney) => {
-                setJourney(nextJourney);
-                setView('home');
-              })
-              .catch(() => setError(true))
-              .finally(() => setBusy(false));
-          }}
-        />
-      );
-    }
-
-    return (
-      <PurposeGuideScreen
-        journey={journey}
-        busy={busy}
-        onBack={() => setView('task')}
-        onComplete={() => {
-          if (!journey.task) {
-            setView('home');
-            return;
-          }
-
-          setBusy(true);
-          void api
-            .completeTask(journey.task.id)
-            .then((nextJourney) => {
-              setJourney(nextJourney);
-              setView('home');
-            })
-            .catch(() => setError(true))
-            .finally(() => setBusy(false));
-        }}
+        onStartGuide={() => openHospitalPurpose('서류 발급')}
       />
     );
   }
@@ -256,20 +218,7 @@ export function CaregiverJourneyApp({
         catalog={hospitalCatalog}
         guidance={guidance}
         busy={busy}
-        onOpenPurpose={(query) => {
-          setActionError(null);
-          setBusy(true);
-          void api
-            .searchHospitalGuidePurpose(query)
-            .then((result) => {
-              setHospitalPurpose(result);
-              setView('hospital-purpose');
-            })
-            .catch(() =>
-              setActionError('등록된 목적을 찾지 못했습니다.'),
-            )
-            .finally(() => setBusy(false));
-        }}
+        onOpenPurpose={openHospitalPurpose}
         onOpenDirectory={() => {
           setHospitalGuideTarget(null);
           setView('hospital-directory');
@@ -311,17 +260,41 @@ export function CaregiverJourneyApp({
         catalog={hospitalCatalog}
         initialTarget={hospitalGuideTarget}
         onBack={() => setView('service-guide')}
+        onNavigate={(target) => {
+          setHospitalGuideTarget(target);
+          setView('safe-navigation');
+        }}
       />
     );
   }
 
-  if (view === 'indoor-navigation') {
-    return (
-      <IndoorNavigationScreen
-        journey={journey}
-        onBack={() => setView('service-guide')}
-      />
+  if (
+    view === 'safe-navigation' &&
+    hospitalCatalog &&
+    hospitalGuideTarget?.placeId
+  ) {
+    const building = hospitalCatalog.buildings.find(
+      ({ id }) => id === hospitalGuideTarget.buildingId,
     );
+    const floor = building?.floors.find(
+      ({ code }) => code === hospitalGuideTarget.floorCode,
+    );
+    const destination = floor?.places.find(
+      ({ id }) => id === hospitalGuideTarget.placeId,
+    );
+
+    if (building && floor && destination) {
+      return (
+        <SafeNavigationScreen
+          buildingName={building.name}
+          destination={destination}
+          floors={building.floors}
+          onBack={() => setView('hospital-directory')}
+          route={getRouteAvailability(floor, null)}
+          startFloorCode={floor.code}
+        />
+      );
+    }
   }
 
   if (view === 'restrictions' && guidance) {

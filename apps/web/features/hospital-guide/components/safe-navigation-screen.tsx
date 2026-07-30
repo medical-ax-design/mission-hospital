@@ -1,0 +1,311 @@
+import type {
+  GuideFloor,
+  GuidePlace,
+  RouteAvailability,
+  VerifiedRoute,
+} from '@ready-on/contracts/hospital-guide';
+import { useState } from 'react';
+import { MobileShell } from '../../caregiver-journey/components/mobile-shell';
+import { validateVerifiedRoute } from '../hospital-guide-model';
+
+interface SafeNavigationScreenProps {
+  buildingName: string;
+  destination: GuidePlace;
+  floors: GuideFloor[];
+  onBack: () => void;
+  route: RouteAvailability;
+  startFloorCode: string;
+}
+
+function floorCodeFromKey(floorKey: string) {
+  return floorKey.split(':').at(-1) ?? floorKey;
+}
+
+function floorLabel(floors: GuideFloor[], floorKey: string) {
+  const code = floorCodeFromKey(floorKey);
+  return floors.find((floor) => floor.code === code)?.label ?? code;
+}
+
+function pointsToPolyline(points: [number, number][]) {
+  return points.map(([x, y]) => `${x},${y}`).join(' ');
+}
+
+function pointsToMotionPath(points: [number, number][]) {
+  return points.map(([x, y], index) => `${index ? 'L' : 'M'} ${x} ${y}`).join(' ');
+}
+
+function destinationLabel(destination: GuidePlace) {
+  return destination.officialNumber
+    ? `${destination.officialNumber}. ${destination.officialName}`
+    : destination.officialName;
+}
+
+function MapOnlyNavigation({
+  buildingName,
+  destination,
+  floor,
+  onBack,
+  sourceUrl,
+}: {
+  buildingName: string;
+  destination: GuidePlace;
+  floor: GuideFloor | undefined;
+  onBack: () => void;
+  sourceUrl: string;
+}) {
+  return (
+    <MobileShell compactHeader>
+      <main className="screen safe-navigation">
+        <button className="text-back" onClick={onBack} type="button">
+          ← 층별 안내
+        </button>
+        <p className="eyebrow">경로 검증 전 위치 안내</p>
+        <h1 className="page-title">공식 지도에서 위치를 확인하세요</h1>
+        <p className="lead">
+          병원이 확인한 복도 경로가 아직 등록되지 않아 임의의 선을
+          표시하지 않습니다.
+        </p>
+
+        <section className="navigation-destination">
+          <span aria-hidden="true">도착</span>
+          <div>
+            <small>
+              {buildingName} {floor?.label ?? ''}
+            </small>
+            <h2>{destinationLabel(destination)}</h2>
+          </div>
+        </section>
+
+        {floor?.mapImageUrl ? (
+          <figure className="floor-map safe-navigation__map">
+            <img
+              alt={`${buildingName} ${floor.label} 공식 안내도`}
+              src={floor.mapImageUrl}
+            />
+            <figcaption>
+              지도와 현장 표지판을 함께 확인해 주세요.
+            </figcaption>
+          </figure>
+        ) : (
+          <div className="route-unavailable">
+            앱에서 공식 안내도 이미지를 불러올 수 없습니다. 가까운
+            안내 데스크에 문의해 주세요.
+          </div>
+        )}
+
+        <a
+          className="official-source"
+          href={sourceUrl}
+          rel="noreferrer"
+          target="_blank"
+        >
+          삼성서울병원 공식 층별 안내 원문
+        </a>
+      </main>
+    </MobileShell>
+  );
+}
+
+function VerifiedNavigation({
+  buildingName,
+  destination,
+  floors,
+  onBack,
+  route,
+}: {
+  buildingName: string;
+  destination: GuidePlace;
+  floors: GuideFloor[];
+  onBack: () => void;
+  route: VerifiedRoute;
+}) {
+  const [stepIndex, setStepIndex] = useState(0);
+  const step = route.segments[stepIndex];
+
+  if (!step) return null;
+
+  const nextStep = () =>
+    setStepIndex((current) =>
+      Math.min(current + 1, route.segments.length - 1),
+    );
+
+  return (
+    <MobileShell compactHeader>
+      <main className="screen safe-navigation">
+        <button className="text-back" onClick={onBack} type="button">
+          ← 층별 안내
+        </button>
+        <p className="eyebrow">병원 검증 경로</p>
+        <h1 className="page-title">{destinationLabel(destination)} 길찾기</h1>
+        <p className="safe-navigation__progress">
+          {stepIndex + 1} / {route.segments.length}
+        </p>
+
+        {step.kind === 'WALK' ? (
+          <section className="verified-walk">
+            <h2>{step.label}</h2>
+            {(() => {
+              const floor = floors.find(
+                ({ code }) => code === floorCodeFromKey(step.floorKey),
+              );
+
+              if (!floor?.mapImageUrl) {
+                return (
+                  <p className="route-unavailable">
+                    이 경로와 연결된 검증 지도가 없습니다. 가까운 안내
+                    데스크에 문의해 주세요.
+                  </p>
+                );
+              }
+
+              const firstPoint = step.points[0];
+              return (
+                <figure className="verified-floor-route">
+                  <div className="verified-floor-route__canvas">
+                    <img
+                      alt={`${buildingName} ${floor.label} 검증 안내도`}
+                      src={floor.mapImageUrl}
+                    />
+                    <svg
+                      aria-label={`${floor.label}에서 이동할 검증 경로`}
+                      className="verified-floor-route__overlay"
+                      role="img"
+                      viewBox="0 0 100 100"
+                    >
+                      <polyline
+                        data-testid="route-line"
+                        fill="none"
+                        points={pointsToPolyline(step.points)}
+                      />
+                      {firstPoint && (
+                        <g
+                          className="verified-route-user"
+                          data-testid="route-user-marker"
+                        >
+                          <circle r="3.2" />
+                          <circle
+                            className="verified-route-user__head"
+                            cy="-0.9"
+                            r="0.8"
+                          />
+                          <path
+                            className="verified-route-user__body"
+                            d="M -1.4 1.7 C -1.1 0.3 1.1 0.3 1.4 1.7 Z"
+                          />
+                          <animateMotion
+                            dur="5s"
+                            path={pointsToMotionPath(step.points)}
+                            repeatCount="indefinite"
+                          />
+                        </g>
+                      )}
+                    </svg>
+                  </div>
+                  <figcaption>
+                    {buildingName} {floor.label}의 검증된 복도 안에서만
+                    이동선을 표시합니다.
+                  </figcaption>
+                </figure>
+              );
+            })()}
+            {stepIndex < route.segments.length - 1 ? (
+              <button
+                className="primary-button"
+                onClick={nextStep}
+                type="button"
+              >
+                이동 수단에 도착했어요
+              </button>
+            ) : (
+              <button
+                className="primary-button"
+                onClick={onBack}
+                type="button"
+              >
+                목적지에 도착했어요
+              </button>
+            )}
+          </section>
+        ) : (
+          <section className="verified-transition">
+            <span aria-hidden="true">
+              {step.mode === 'ELEVATOR' ? '↕' : '↗'}
+            </span>
+            <h2>
+              {floorLabel(floors, step.fromFloorKey)} →{' '}
+              {floorLabel(floors, step.toFloorKey)}
+            </h2>
+            <p>
+              {step.mode === 'ELEVATOR'
+                ? '엘리베이터로 이동하세요'
+                : step.direction === 'UP'
+                  ? '에스컬레이터로 올라가세요'
+                  : '에스컬레이터로 내려가세요'}
+            </p>
+            <button
+              className="primary-button"
+              onClick={nextStep}
+              type="button"
+            >
+              {floorLabel(floors, step.toFloorKey)}에 도착했어요
+            </button>
+          </section>
+        )}
+      </main>
+    </MobileShell>
+  );
+}
+
+export function SafeNavigationScreen({
+  buildingName,
+  destination,
+  floors,
+  onBack,
+  route,
+  startFloorCode,
+}: SafeNavigationScreenProps) {
+  const startFloor = floors.find(({ code }) => code === startFloorCode);
+
+  if (route.status === 'VERIFIED') {
+    const verifiedRoute = validateVerifiedRoute(route);
+    if (verifiedRoute) {
+      return (
+        <VerifiedNavigation
+          buildingName={buildingName}
+          destination={destination}
+          floors={floors}
+          onBack={onBack}
+          route={verifiedRoute}
+        />
+      );
+    }
+  }
+
+  if (route.status === 'MAP_ONLY') {
+    return (
+      <MapOnlyNavigation
+        buildingName={buildingName}
+        destination={destination}
+        floor={startFloor}
+        onBack={onBack}
+        sourceUrl={route.sourceUrl}
+      />
+    );
+  }
+
+  return (
+    <MobileShell compactHeader>
+      <main className="screen state-screen">
+        <h1>확인된 이동 안내가 없습니다</h1>
+        <p>
+          {route.status === 'UNAVAILABLE'
+            ? route.reason
+            : '가까운 안내 데스크에 문의해 주세요.'}
+        </p>
+        <button className="primary-button" onClick={onBack} type="button">
+          층별 안내로 돌아가기
+        </button>
+      </main>
+    </MobileShell>
+  );
+}

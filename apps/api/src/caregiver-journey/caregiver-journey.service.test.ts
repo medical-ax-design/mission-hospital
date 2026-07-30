@@ -81,6 +81,6 @@ describe('CaregiverJourneyService', () => {
     const journey = await service.getDemo();
 
     expect(journey.guide).toBeNull();
-    expect(JSON.stringify(journey)).not.toContain('3번 키오스크');
+    expect(JSON.stringify(journey)).not.toContain('키오스크');
   });
 });
