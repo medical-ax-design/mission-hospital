@@ -36,6 +36,9 @@ const journeyResponse = {
     guide: {
       currentLocation: '수술 대기실',
       destination: '본관 1층 3번 키오스크',
+      building: 'MAIN',
+      floor: '1F',
+      location: '3번 키오스크',
       estimatedTravelMinutes: 6,
       ticketRequired: false,
       steps: [
@@ -45,9 +48,18 @@ const journeyResponse = {
       ],
       fallback: '발급되지 않으면 옆 제증명 창구를 방문하세요.',
     },
-    summary: {
-      status: 'UNAVAILABLE',
-    },
+    schedules: [
+      {
+        id: 'schedule-surgery',
+        type: 'SURGERY',
+        title: '위암 수술',
+        startsAt: '2026-07-30T01:30:00.000Z',
+        building: 'CANCER',
+        floor: '3F',
+        location: '수술환자가족대기실',
+        preparation: ['보호자 대기 장소를 확인해 주세요.'],
+      },
+    ],
   },
 };
 

@@ -13,12 +13,15 @@ import {
 } from './api';
 import { CaregiverHomeScreen } from './components/caregiver-home-screen';
 import { CaregiverTaskScreen } from './components/caregiver-task-screen';
-import { ClinicalSummaryScreen } from './components/clinical-summary-screen';
+import type { RootTab } from './components/bottom-navigation';
+import { IndoorNavigationScreen } from './components/indoor-navigation-screen';
 import { MobileShell } from './components/mobile-shell';
 import { PatientLinkScreen } from './components/patient-link-screen';
 import { PurposeGuideScreen } from './components/purpose-guide-screen';
 import { RestrictionGuidanceScreen } from './components/restriction-guidance-screen';
 import { SavedQuestionsScreen } from './components/saved-questions-screen';
+import { ScheduleScreen } from './components/schedule-screen';
+import { ServiceGuideScreen } from './components/service-guide-screen';
 import { TreatmentProgressScreen } from './components/treatment-progress-screen';
 
 type JourneyView =
@@ -26,7 +29,9 @@ type JourneyView =
   | 'progress'
   | 'task'
   | 'guide'
-  | 'summary'
+  | 'schedule'
+  | 'service-guide'
+  | 'indoor-navigation'
   | 'restrictions'
   | 'questions';
 
@@ -150,6 +155,38 @@ export function CaregiverJourneyApp({
   }
 
   if (view === 'guide') {
+    if (journey.guide) {
+      return (
+        <IndoorNavigationScreen
+          journey={journey}
+          destination={{
+            building: journey.guide.building,
+            floor: journey.guide.floor,
+            landmark: journey.guide.location,
+          }}
+          busy={busy}
+          completionLabel="업무 완료"
+          onBack={() => setView('task')}
+          onComplete={() => {
+            if (!journey.task) {
+              setView('home');
+              return;
+            }
+
+            setBusy(true);
+            void api
+              .completeTask(journey.task.id)
+              .then((nextJourney) => {
+                setJourney(nextJourney);
+                setView('home');
+              })
+              .catch(() => setError(true))
+              .finally(() => setBusy(false));
+          }}
+        />
+      );
+    }
+
     return (
       <PurposeGuideScreen
         journey={journey}
@@ -175,11 +212,33 @@ export function CaregiverJourneyApp({
     );
   }
 
-  if (view === 'summary') {
+  if (view === 'schedule') {
     return (
-      <ClinicalSummaryScreen
+      <ScheduleScreen
         journey={journey}
-        onHome={() => setView('home')}
+        onSelectTab={(tab: RootTab) => setView(tab)}
+      />
+    );
+  }
+
+  if (view === 'service-guide') {
+    return (
+      <ServiceGuideScreen
+        journey={journey}
+        guidance={guidance}
+        onOpenTask={() => setView('task')}
+        onOpenNavigation={() => setView('indoor-navigation')}
+        onOpenRestrictions={() => setView('restrictions')}
+        onSelectTab={(tab: RootTab) => setView(tab)}
+      />
+    );
+  }
+
+  if (view === 'indoor-navigation') {
+    return (
+      <IndoorNavigationScreen
+        journey={journey}
+        onBack={() => setView('service-guide')}
       />
     );
   }
@@ -325,8 +384,8 @@ export function CaregiverJourneyApp({
       demoMode={demoMode}
       onOpenProgress={() => setView('progress')}
       onOpenTask={() => setView('task')}
-      onOpenSummary={() => setView('summary')}
       onOpenRestrictions={() => setView('restrictions')}
+      onSelectTab={(tab: RootTab) => setView(tab)}
       onSelectScenario={(scenarioId) => {
         setBusy(true);
         void api
