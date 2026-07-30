@@ -155,6 +155,38 @@ export function CaregiverJourneyApp({
   }
 
   if (view === 'guide') {
+    if (journey.guide) {
+      return (
+        <IndoorNavigationScreen
+          journey={journey}
+          destination={{
+            building: journey.guide.building,
+            floor: journey.guide.floor,
+            landmark: journey.guide.location,
+          }}
+          busy={busy}
+          completionLabel="업무 완료"
+          onBack={() => setView('task')}
+          onComplete={() => {
+            if (!journey.task) {
+              setView('home');
+              return;
+            }
+
+            setBusy(true);
+            void api
+              .completeTask(journey.task.id)
+              .then((nextJourney) => {
+                setJourney(nextJourney);
+                setView('home');
+              })
+              .catch(() => setError(true))
+              .finally(() => setBusy(false));
+          }}
+        />
+      );
+    }
+
     return (
       <PurposeGuideScreen
         journey={journey}
@@ -194,6 +226,7 @@ export function CaregiverJourneyApp({
       <ServiceGuideScreen
         journey={journey}
         guidance={guidance}
+        onOpenTask={() => setView('task')}
         onOpenNavigation={() => setView('indoor-navigation')}
         onOpenRestrictions={() => setView('restrictions')}
         onSelectTab={(tab: RootTab) => setView(tab)}

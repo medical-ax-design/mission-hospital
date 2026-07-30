@@ -37,6 +37,9 @@ function createSurgeryJourney(): CaregiverJourney {
     guide: {
       currentLocation: '수술 대기실',
       destination: '본관 1층 3번 키오스크',
+      building: 'MAIN',
+      floor: '1F',
+      location: '3번 키오스크',
       estimatedTravelMinutes: 6,
       ticketRequired: false,
       steps: [

@@ -4,6 +4,7 @@ import type {
 } from '@ready-on/contracts/caregiver-journey';
 import { useMemo, useState } from 'react';
 import {
+  availableRouteModes,
   buildingLabels,
   createIndoorRoute,
   getHospitalMap,
@@ -16,15 +17,21 @@ import { MobileShell } from './mobile-shell';
 interface IndoorNavigationScreenProps {
   journey: CaregiverJourney;
   onBack: () => void;
+  destination?: IndoorLocation;
+  busy?: boolean;
+  completionLabel?: string;
+  onComplete?: () => void;
 }
 
 function destinationFromJourney(
   journey: CaregiverJourney,
-): IndoorLocation {
+): IndoorLocation | null {
   const target =
     journey.schedules.find(({ type }) => type === 'SURGERY') ??
     journey.schedules.find(({ type }) => type === 'EXAM') ??
-    journey.schedules[0]!;
+    journey.schedules[0];
+
+  if (!target) return null;
 
   return {
     building: target.building,
@@ -33,11 +40,25 @@ function destinationFromJourney(
   };
 }
 
+function toMotionPath(points: string) {
+  return `M ${points.trim().split(/\s+/).join(' L ')}`;
+}
+
+function getFirstPoint(points: string) {
+  const [x = '0', y = '0'] = points.trim().split(/\s+/)[0]!.split(',');
+  return { x, y };
+}
+
 export function IndoorNavigationScreen({
   journey,
   onBack,
+  destination: destinationOverride,
+  busy = false,
+  completionLabel = '도착 완료',
+  onComplete,
 }: IndoorNavigationScreenProps) {
-  const destination = destinationFromJourney(journey);
+  const destination =
+    destinationOverride ?? destinationFromJourney(journey);
   const [building, setBuilding] = useState<HospitalBuilding>('MAIN');
   const [floor, setFloor] = useState('1F');
   const [landmark, setLandmark] = useState(
@@ -48,16 +69,30 @@ export function IndoorNavigationScreen({
   const [stepIndex, setStepIndex] = useState(0);
 
   const map = getHospitalMap(building, floor);
+  const start = useMemo(
+    () => ({ building, floor, landmark }),
+    [building, floor, landmark],
+  );
+  const availableModes = useMemo(
+    () =>
+      destination ? availableRouteModes(start, destination) : [],
+    [destination, start],
+  );
+  const selectedMode = availableModes.includes(mode)
+    ? mode
+    : availableModes[0];
+  const requiresTransition =
+    destination !== null &&
+    (start.building !== destination.building ||
+      start.floor !== destination.floor);
   const route = useMemo(
     () =>
-      createIndoorRoute(
-        { building, floor, landmark },
-        destination,
-        mode,
-      ),
-    [building, destination, floor, landmark, mode],
+      destination && selectedMode
+        ? createIndoorRoute(start, destination, selectedMode)
+        : null,
+    [destination, selectedMode, start],
   );
-  const step = route[stepIndex]!;
+  const step = route?.[stepIndex];
 
   const selectBuilding = (nextBuilding: HospitalBuilding) => {
     const nextFloor = Object.keys(hospitalMaps[nextBuilding])[0]!;
@@ -72,6 +107,23 @@ export function IndoorNavigationScreen({
     setFloor(nextFloor);
     setLandmark(nextMap?.landmarks[0] ?? '');
   };
+
+  if (
+    !destination ||
+    !getHospitalMap(destination.building, destination.floor)
+  ) {
+    return (
+      <MobileShell compactHeader>
+        <main className="screen state-screen">
+          <h1>등록된 이동 안내가 없습니다.</h1>
+          <p>가까운 안내 데스크에 문의해 주세요.</p>
+          <button className="primary-button" onClick={onBack} type="button">
+            이용 안내로 돌아가기
+          </button>
+        </main>
+      </MobileShell>
+    );
+  }
 
   return (
     <MobileShell compactHeader>
@@ -145,36 +197,52 @@ export function IndoorNavigationScreen({
               </label>
             </section>
 
-            <fieldset className="route-mode">
-              <legend>층 이동 방법</legend>
-              <label>
-                <input
-                  checked={mode === 'ELEVATOR'}
-                  name="route-mode"
-                  onChange={() => setMode('ELEVATOR')}
-                  type="radio"
-                />
-                <span>
-                  <strong>엘리베이터</strong>
-                  <small>추천 · 이동이 불편한 환자와 함께 이용</small>
-                </span>
-              </label>
-              <label>
-                <input
-                  checked={mode === 'ESCALATOR'}
-                  name="route-mode"
-                  onChange={() => setMode('ESCALATOR')}
-                  type="radio"
-                />
-                <span>
-                  <strong>에스컬레이터</strong>
-                  <small>이용 가능한 층을 차례대로 이동</small>
-                </span>
-              </label>
-            </fieldset>
+            {requiresTransition && (
+              <fieldset className="route-mode">
+                <legend>층 이동 방법</legend>
+                <label>
+                  <input
+                    checked={selectedMode === 'ELEVATOR'}
+                    disabled={!availableModes.includes('ELEVATOR')}
+                    name="route-mode"
+                    onChange={() => setMode('ELEVATOR')}
+                    type="radio"
+                  />
+                  <span>
+                    <strong>엘리베이터</strong>
+                    <small>추천 · 이동이 불편한 환자와 함께 이용</small>
+                  </span>
+                </label>
+                <label>
+                  <input
+                    checked={selectedMode === 'ESCALATOR'}
+                    disabled={!availableModes.includes('ESCALATOR')}
+                    name="route-mode"
+                    onChange={() => setMode('ESCALATOR')}
+                    type="radio"
+                  />
+                  <span>
+                    <strong>에스컬레이터</strong>
+                    <small>
+                      {availableModes.includes('ESCALATOR')
+                        ? '확인된 연결 경로로 이동'
+                        : '현재 경로는 공식 연결 정보 확인 전'}
+                    </small>
+                  </span>
+                </label>
+              </fieldset>
+            )}
+
+            {!route && (
+              <p className="route-unavailable" role="alert">
+                선택한 위치에서 목적지까지 확인된 이동 경로가 없습니다.
+                가까운 안내 데스크에 문의해 주세요.
+              </p>
+            )}
 
             <button
               className="primary-button"
+              disabled={!route}
               onClick={() => {
                 setStepIndex(0);
                 setStarted(true);
@@ -184,7 +252,7 @@ export function IndoorNavigationScreen({
               길찾기 시작
             </button>
           </>
-        ) : (
+        ) : route && step ? (
           <section className="route-player" aria-live="polite">
             <div className="route-player__progress">
               <span>
@@ -200,6 +268,10 @@ export function IndoorNavigationScreen({
                 경로 다시 선택
               </button>
             </div>
+            <p className="route-player__disclaimer">
+              붉은 선과 전환 화면은 기능 검증용 시연 경로입니다. 현장
+              표지판을 함께 확인해 주세요.
+            </p>
 
             {step.kind === 'MAP' ? (
               <figure className="official-map">
@@ -209,23 +281,52 @@ export function IndoorNavigationScreen({
                     src={step.map.imageUrl}
                   />
                   <svg
-                    aria-label="붉은 이동 경로"
+                    aria-label="사용자 위치와 붉은 이동 경로"
                     className="official-map__route"
-                    preserveAspectRatio="none"
                     role="img"
-                    viewBox="0 0 100 100"
+                    viewBox="0 0 100 59.47"
                   >
                     <polyline
                       data-testid="route-line"
                       fill="none"
                       points={step.path}
                     />
-                    <circle cx="12" cy="72" r="3" />
+                    <g
+                      className="route-user route-user--animated"
+                      data-testid="route-user-marker"
+                    >
+                      <circle r="2.8" />
+                      <circle className="route-user__head" cy="-0.8" r="0.75" />
+                      <path
+                        className="route-user__body"
+                        d="M -1.35 1.55 C -1.1 0.3 1.1 0.3 1.35 1.55 Z"
+                      />
+                      <animateMotion
+                        dur="4s"
+                        path={toMotionPath(step.path)}
+                        repeatCount="indefinite"
+                      />
+                    </g>
+                    <g
+                      className="route-user route-user--static"
+                      transform={`translate(${getFirstPoint(step.path).x} ${getFirstPoint(step.path).y})`}
+                    >
+                      <circle r="2.8" />
+                      <circle className="route-user__head" cy="-0.8" r="0.75" />
+                      <path
+                        className="route-user__body"
+                        d="M -1.35 1.55 C -1.1 0.3 1.1 0.3 1.35 1.55 Z"
+                      />
+                    </g>
                   </svg>
                 </div>
                 <figcaption>
                   <strong>{step.title}</strong>
                   <p>{step.instruction}</p>
+                  <p className="official-map__legend">
+                    <i aria-hidden="true" /> 붉은 원은 사용자의 이동 위치를
+                    보여줍니다.
+                  </p>
                   <a
                     href={step.map.sourceUrl}
                     rel="noreferrer"
@@ -272,13 +373,29 @@ export function IndoorNavigationScreen({
               ) : (
                 <button
                   className="primary-button"
-                  onClick={onBack}
+                  disabled={busy}
+                  onClick={onComplete ?? onBack}
                   type="button"
                 >
-                  도착 완료
+                  {busy ? '완료를 반영하고 있습니다' : completionLabel}
                 </button>
               )}
             </div>
+          </section>
+        ) : (
+          <section className="state-screen">
+            <h2>경로를 표시할 수 없습니다.</h2>
+            <p>현재 위치를 다시 선택하거나 안내 데스크에 문의해 주세요.</p>
+            <button
+              className="primary-button"
+              onClick={() => {
+                setStarted(false);
+                setStepIndex(0);
+              }}
+              type="button"
+            >
+              현재 위치 다시 선택
+            </button>
           </section>
         )}
       </main>

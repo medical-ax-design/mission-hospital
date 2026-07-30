@@ -75,6 +75,9 @@ const CaregiverTaskSchema = z.object({
 const PurposeGuideSchema = z.object({
   currentLocation: z.string().trim().min(1),
   destination: z.string().trim().min(1),
+  building: HospitalBuildingSchema,
+  floor: z.string().trim().min(1),
+  location: z.string().trim().min(1),
   estimatedTravelMinutes: z.number().int().positive(),
   ticketRequired: z.boolean(),
   steps: z.array(z.string().trim().min(1)).min(1),

@@ -40,6 +40,9 @@ const unlinkedJourney: CaregiverJourney = {
   guide: {
     currentLocation: '수술 대기실',
     destination: '본관 1층 3번 키오스크',
+    building: 'MAIN',
+    floor: '1F',
+    location: '3번 키오스크',
     estimatedTravelMinutes: 6,
     ticketRequired: false,
     steps: [
@@ -343,17 +346,17 @@ describe('CaregiverJourneyApp', () => {
 
     expect(
       screen.getByRole('heading', {
-        name: '본관 1층 3번 키오스크',
+        name: '병원 안 길찾기',
       }),
     ).toBeInTheDocument();
+    expect(screen.getByText('3번 키오스크')).toBeInTheDocument();
     expect(
-      screen.getByText('중앙 엘리베이터로 이동하세요.'),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        '발급되지 않으면 옆 제증명 창구를 방문하세요.',
-      ),
-    ).toBeInTheDocument();
+      screen.queryByRole('group', { name: '층 이동 방법' }),
+    ).not.toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole('button', { name: '길찾기 시작' }),
+    );
 
     await user.click(screen.getByRole('button', { name: '업무 완료' }));
 
@@ -675,7 +678,19 @@ describe('CaregiverJourneyApp', () => {
       screen.getByRole('button', { name: /업무·길찾기/ }),
     ).toBeInTheDocument();
     expect(
+      screen.getByRole('button', {
+        name: /환자 일정 장소 길찾기/,
+      }),
+    ).toBeInTheDocument();
+    expect(
       screen.getByText('검사 준비·주의사항'),
+    ).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole('button', { name: /업무·길찾기/ }),
+    );
+    expect(
+      screen.getByRole('heading', { name: '입원 서류 발급' }),
     ).toBeInTheDocument();
   });
 
@@ -694,7 +709,9 @@ describe('CaregiverJourneyApp', () => {
       await screen.findByRole('button', { name: '이용 안내' }),
     );
     await user.click(
-      screen.getByRole('button', { name: /업무·길찾기/ }),
+      screen.getByRole('button', {
+        name: /환자 일정 장소 길찾기/,
+      }),
     );
 
     expect(
@@ -714,6 +731,10 @@ describe('CaregiverJourneyApp', () => {
       screen.getByRole('img', { name: /삼성서울병원 공식/ }),
     ).toBeInTheDocument();
     expect(screen.getByTestId('route-line')).toBeInTheDocument();
+    expect(screen.getByTestId('route-user-marker')).toBeInTheDocument();
+    expect(
+      screen.getByText(/붉은 원은 사용자의 이동 위치/),
+    ).toBeInTheDocument();
 
     await user.click(
       screen.getByRole('button', { name: '다음 안내' }),

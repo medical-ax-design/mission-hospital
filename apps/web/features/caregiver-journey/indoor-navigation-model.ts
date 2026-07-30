@@ -117,15 +117,174 @@ export function getHospitalMap(
   ] as HospitalMap | undefined;
 }
 
+type MapKey = `${HospitalBuilding}:${string}`;
+
+interface RouteEdge {
+  from: MapKey;
+  to: MapKey;
+  mode: 'BUILDING' | RouteMode;
+  title: string;
+  instruction: string;
+}
+
+const routeEdges: RouteEdge[] = [];
+
+function mapKey(building: HospitalBuilding, floor: string): MapKey {
+  return `${building}:${floor}`;
+}
+
+function addTwoWayEdge(
+  left: MapKey,
+  right: MapKey,
+  mode: RouteEdge['mode'],
+  leftToRight: Pick<RouteEdge, 'title' | 'instruction'>,
+  rightToLeft: Pick<RouteEdge, 'title' | 'instruction'>,
+) {
+  routeEdges.push(
+    { from: left, to: right, mode, ...leftToRight },
+    { from: right, to: left, mode, ...rightToLeft },
+  );
+}
+
+for (const [building, floors] of Object.entries(hospitalMaps) as Array<
+  [HospitalBuilding, Record<string, HospitalMap>]
+>) {
+  const floorNames = Object.keys(floors);
+  for (let index = 0; index < floorNames.length - 1; index += 1) {
+    const currentFloor = floorNames[index]!;
+    const nextFloor = floorNames[index + 1]!;
+
+    addTwoWayEdge(
+      mapKey(building, currentFloor),
+      mapKey(building, nextFloor),
+      'ELEVATOR',
+      {
+        title: `${buildingLabels[building]} ${currentFloor}에서 엘리베이터로 ${nextFloor} 이동`,
+        instruction: `${nextFloor} 버튼을 누르고 안내 방송을 확인하세요.`,
+      },
+      {
+        title: `${buildingLabels[building]} ${nextFloor}에서 엘리베이터로 ${currentFloor} 이동`,
+        instruction: `${currentFloor} 버튼을 누르고 안내 방송을 확인하세요.`,
+      },
+    );
+  }
+}
+
+addTwoWayEdge(
+  mapKey('MAIN', '1F'),
+  mapKey('ANNEX', '1F'),
+  'BUILDING',
+  {
+    title: '본관 1F에서 별관 1F 연결통로로 이동',
+    instruction: '별관 방향 연결통로 표지판을 확인하고 이동하세요.',
+  },
+  {
+    title: '별관 1F에서 본관 1F 연결통로로 이동',
+    instruction: '본관 방향 연결통로 표지판을 확인하고 이동하세요.',
+  },
+);
+addTwoWayEdge(
+  mapKey('ANNEX', '1F'),
+  mapKey('CANCER', '2F'),
+  'BUILDING',
+  {
+    title: '별관 1F에서 암병원 2F 연결통로로 이동',
+    instruction: '암병원 방향 연결통로 표지판을 확인하고 이동하세요.',
+  },
+  {
+    title: '암병원 2F에서 별관 1F 연결통로로 이동',
+    instruction: '별관 방향 연결통로 표지판을 확인하고 이동하세요.',
+  },
+);
+
+function parseMapKey(key: MapKey) {
+  const [building, floor] = key.split(':') as [
+    HospitalBuilding,
+    string,
+  ];
+  return { building, floor };
+}
+
+function findEdgePath(
+  start: IndoorLocation,
+  destination: IndoorLocation,
+  mode: RouteMode,
+): RouteEdge[] | null {
+  const startKey = mapKey(start.building, start.floor);
+  const destinationKey = mapKey(
+    destination.building,
+    destination.floor,
+  );
+
+  if (
+    !getHospitalMap(start.building, start.floor) ||
+    !getHospitalMap(destination.building, destination.floor)
+  ) {
+    return null;
+  }
+
+  if (startKey === destinationKey) {
+    return [];
+  }
+
+  const queue: MapKey[] = [startKey];
+  const visited = new Set<MapKey>([startKey]);
+  const previous = new Map<MapKey, RouteEdge>();
+
+  while (queue.length > 0) {
+    const current = queue.shift()!;
+    const candidates = routeEdges.filter(
+      (edge) =>
+        edge.from === current &&
+        (edge.mode === 'BUILDING' || edge.mode === mode),
+    );
+
+    for (const edge of candidates) {
+      if (visited.has(edge.to)) continue;
+      visited.add(edge.to);
+      previous.set(edge.to, edge);
+      if (edge.to === destinationKey) {
+        queue.length = 0;
+        break;
+      }
+      queue.push(edge.to);
+    }
+  }
+
+  if (!previous.has(destinationKey)) {
+    return null;
+  }
+
+  const path: RouteEdge[] = [];
+  let cursor = destinationKey;
+  while (cursor !== startKey) {
+    const edge = previous.get(cursor);
+    if (!edge) return null;
+    path.unshift(edge);
+    cursor = edge.from;
+  }
+
+  return path;
+}
+
+export function availableRouteModes(
+  start: IndoorLocation,
+  destination: IndoorLocation,
+) {
+  return (['ELEVATOR', 'ESCALATOR'] as const).filter(
+    (mode) => findEdgePath(start, destination, mode) !== null,
+  );
+}
+
 function mapStep(
   location: IndoorLocation,
   title: string,
   instruction: string,
   path: string,
-): MapRouteStep {
+): MapRouteStep | null {
   const map = getHospitalMap(location.building, location.floor);
   if (!map) {
-    throw new Error(`Unsupported hospital map: ${location.building} ${location.floor}`);
+    return null;
   }
 
   return {
@@ -141,70 +300,48 @@ export function createIndoorRoute(
   start: IndoorLocation,
   destination: IndoorLocation,
   mode: RouteMode,
-): IndoorRouteStep[] {
-  const route: IndoorRouteStep[] = [];
-  const buildingChanged = start.building !== destination.building;
-  const floorChanged = start.floor !== destination.floor;
+): IndoorRouteStep[] | null {
+  const edgePath = findEdgePath(start, destination, mode);
+  if (edgePath === null) return null;
 
-  route.push(
-    mapStep(
-      start,
-      `${buildingLabels[start.building]} ${start.floor}에서 출발`,
-      `${start.landmark}에서 붉은 선을 따라 이동하세요.`,
-      buildingChanged || floorChanged
-        ? '12,72 34,72 48,54 64,54 78,34'
-        : '12,72 35,65 58,48 82,28',
-    ),
+  const firstMapStep = mapStep(
+    start,
+    `${buildingLabels[start.building]} ${start.floor}에서 출발`,
+    `${start.landmark}에서 시연용 붉은 선을 따라 이동하세요.`,
+    '8,42 27,42 39,32 58,32 76,18',
   );
+  if (!firstMapStep) return null;
 
-  if (buildingChanged) {
+  const route: IndoorRouteStep[] = [firstMapStep];
+
+  for (const [index, edge] of edgePath.entries()) {
     route.push({
       kind: 'TRANSITION',
-      title: `${buildingLabels[start.building]}에서 ${buildingLabels[destination.building]} 연결통로로 이동`,
-      instruction:
-        '연결통로 표지판을 확인하고 화면의 다음 안내를 눌러 주세요.',
-      icon: 'BUILDING',
+      title: edge.title,
+      instruction: edge.instruction,
+      icon: edge.mode,
     });
 
-    if (destination.floor !== '1F') {
-      route.push(
-        mapStep(
-          {
-            building: destination.building,
-            floor: '1F',
-            landmark: `${buildingLabels[destination.building]} 연결통로`,
-          },
-          `${buildingLabels[destination.building]} 1F 도착`,
-          `${mode === 'ELEVATOR' ? '엘리베이터' : '에스컬레이터'} 표지판까지 붉은 선을 따라가세요.`,
-          '10,35 30,35 48,55 66,55 84,72',
-        ),
-      );
-    }
-  }
-
-  if (floorChanged || (buildingChanged && destination.floor !== '1F')) {
-    route.push({
-      kind: 'TRANSITION',
-      title: `${
-        mode === 'ELEVATOR' ? '엘리베이터' : '에스컬레이터'
-      }로 ${destination.floor} 이동`,
-      instruction:
-        mode === 'ELEVATOR'
-          ? `${destination.floor} 버튼을 누르고 도착 안내를 확인하세요.`
-          : `${destination.floor}까지 에스컬레이터를 이어서 이용하세요.`,
-      icon: mode,
-    });
-  }
-
-  if (buildingChanged || floorChanged) {
-    route.push(
-      mapStep(
-        destination,
-        `${buildingLabels[destination.building]} ${destination.floor} 도착`,
-        `붉은 선을 따라 ${destination.landmark}까지 이동하세요.`,
-        '12,76 30,62 48,62 64,38 86,24',
-      ),
+    const next = parseMapKey(edge.to);
+    const isDestination = index === edgePath.length - 1;
+    const nextLocation: IndoorLocation = {
+      ...next,
+      landmark: isDestination ? destination.landmark : '연결 지점',
+    };
+    const nextMapStep = mapStep(
+      nextLocation,
+      isDestination
+        ? `${buildingLabels[next.building]} ${next.floor} 도착`
+        : `${buildingLabels[next.building]} ${next.floor} 연결 지점`,
+      isDestination
+        ? `시연용 붉은 선을 따라 ${destination.landmark}까지 이동하세요.`
+        : '다음 연결 지점까지 시연용 붉은 선을 따라 이동하세요.',
+      isDestination
+        ? '8,46 28,37 49,37 66,23 88,14'
+        : '8,20 28,20 48,34 66,34 88,45',
     );
+    if (!nextMapStep) return null;
+    route.push(nextMapStep);
   }
 
   return route;

@@ -9,6 +9,7 @@ import { MobileShell } from './mobile-shell';
 interface ServiceGuideScreenProps {
   journey: CaregiverJourney;
   guidance: RestrictionGuidance | null;
+  onOpenTask: () => void;
   onOpenNavigation: () => void;
   onOpenRestrictions: () => void;
   onSelectTab: (tab: RootTab) => void;
@@ -17,6 +18,7 @@ interface ServiceGuideScreenProps {
 export function ServiceGuideScreen({
   journey,
   guidance,
+  onOpenTask,
   onOpenNavigation,
   onOpenRestrictions,
   onSelectTab,
@@ -33,7 +35,7 @@ export function ServiceGuideScreen({
         <div className="service-guide__cards">
           <button
             className="service-guide-card"
-            onClick={onOpenNavigation}
+            onClick={journey.task ? onOpenTask : onOpenNavigation}
             type="button"
           >
             <span className="service-guide-card__icon" aria-hidden="true">
@@ -42,8 +44,26 @@ export function ServiceGuideScreen({
             <span>
               <strong>업무·길찾기</strong>
               <small>
-                현재 위치를 선택하고 {journey.patient.displayName} 환자의
-                등록된 목적지로 이동
+                {journey.task
+                  ? `${journey.task.title} 준비물과 처리 장소 확인`
+                  : `${journey.patient.displayName} 환자의 등록된 목적지로 이동`}
+              </small>
+            </span>
+            <span aria-hidden="true">›</span>
+          </button>
+
+          <button
+            className="service-guide-card"
+            onClick={onOpenNavigation}
+            type="button"
+          >
+            <span className="service-guide-card__icon" aria-hidden="true">
+              지
+            </span>
+            <span>
+              <strong>환자 일정 장소 길찾기</strong>
+              <small>
+                병원에 등록된 수술·검사 장소와 공식 층별 안내도 확인
               </small>
             </span>
             <span aria-hidden="true">›</span>

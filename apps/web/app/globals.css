@@ -486,6 +486,12 @@ button:focus-visible {
   cursor: pointer;
 }
 
+.route-mode label:has(input:disabled) {
+  cursor: not-allowed;
+  opacity: 0.58;
+  background: var(--soft);
+}
+
 .route-mode input {
   width: 20px;
   height: 20px;
@@ -532,6 +538,25 @@ button:focus-visible {
   font-weight: 800;
 }
 
+.route-unavailable,
+.route-player__disclaimer {
+  border-radius: 12px;
+  color: #664a15;
+  background: #fff4d7;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.route-unavailable {
+  margin: -4px 0 16px;
+  padding: 12px 14px;
+}
+
+.route-player__disclaimer {
+  margin: 0 0 13px;
+  padding: 10px 12px;
+}
+
 .official-map {
   margin: 0;
 }
@@ -539,7 +564,7 @@ button:focus-visible {
 .official-map__canvas {
   position: relative;
   overflow: hidden;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 713 / 424;
   border: 1px solid var(--line);
   border-radius: 18px;
   background: var(--soft);
@@ -549,7 +574,7 @@ button:focus-visible {
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: fill;
 }
 
 .official-map__route {
@@ -562,17 +587,24 @@ button:focus-visible {
 
 .official-map__route polyline {
   stroke: #e22020;
-  stroke-dasharray: 7 4;
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-width: 3.2;
-  animation: route-dash 1.4s linear infinite;
+  stroke-width: 1.15;
 }
 
-.official-map__route circle {
+.route-user > circle:first-child {
   fill: #e22020;
   stroke: #fff;
   stroke-width: 1.5;
+}
+
+.route-user__head,
+.route-user__body {
+  fill: #fff;
+}
+
+.route-user--static {
+  display: none;
 }
 
 .official-map figcaption {
@@ -594,6 +626,23 @@ button:focus-visible {
   color: var(--green);
   font-size: 10px;
   font-weight: 800;
+}
+
+.official-map__legend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.official-map__legend i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  flex: 0 0 auto;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: #e22020;
+  box-shadow: 0 0 0 1px #e22020;
 }
 
 .route-transition {
@@ -658,6 +707,14 @@ button:focus-visible {
   .official-map__route polyline,
   .route-transition > span {
     animation: none;
+  }
+
+  .route-user--animated {
+    display: none;
+  }
+
+  .route-user--static {
+    display: block;
   }
 }
 
