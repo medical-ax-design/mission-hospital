@@ -35,6 +35,10 @@ describe('indoor navigation model', () => {
 
     expect(route).not.toBeNull();
     expect(route!.some(({ kind }) => kind === 'MAP')).toBe(true);
+    expect(route![0]).toMatchObject({
+      kind: 'MAP',
+      path: expect.stringMatching(/^18,37 /),
+    });
     expect(
       route!.some(
         (step) =>
@@ -95,5 +99,28 @@ describe('indoor navigation model', () => {
     expect(
       createIndoorRoute(start, destination, 'ELEVATOR'),
     ).toBeNull();
+  });
+
+  it('같은 층 키오스크 업무는 출발점과 목적지 사이만 표시한다', () => {
+    const route = createIndoorRoute(
+      {
+        building: 'MAIN',
+        floor: '1F',
+        landmark: 'Gate 1',
+      },
+      {
+        building: 'MAIN',
+        floor: '1F',
+        landmark: '3번 키오스크',
+      },
+      'ELEVATOR',
+    );
+
+    expect(route).toEqual([
+      expect.objectContaining({
+        kind: 'MAP',
+        path: '18,37 20,35 24,33',
+      }),
+    ]);
   });
 });

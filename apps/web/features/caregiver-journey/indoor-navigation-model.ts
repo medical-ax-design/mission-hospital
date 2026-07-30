@@ -296,6 +296,32 @@ function mapStep(
   };
 }
 
+function departurePath(
+  start: IndoorLocation,
+  destination: IndoorLocation,
+  hasTransition: boolean,
+) {
+  if (
+    !hasTransition &&
+    start.building === 'MAIN' &&
+    start.floor === '1F' &&
+    start.landmark === 'Gate 1' &&
+    destination.landmark === '3번 키오스크'
+  ) {
+    return '18,37 20,35 24,33';
+  }
+
+  if (
+    start.building === 'MAIN' &&
+    start.floor === '1F' &&
+    start.landmark === 'Gate 1'
+  ) {
+    return '18,37 22,34 31,31 43,28 56,27 66,24 76,18';
+  }
+
+  return '12,42 27,42 39,32 58,32 76,18';
+}
+
 export function createIndoorRoute(
   start: IndoorLocation,
   destination: IndoorLocation,
@@ -308,7 +334,7 @@ export function createIndoorRoute(
     start,
     `${buildingLabels[start.building]} ${start.floor}에서 출발`,
     `${start.landmark}에서 시연용 붉은 선을 따라 이동하세요.`,
-    '8,42 27,42 39,32 58,32 76,18',
+    departurePath(start, destination, edgePath.length > 0),
   );
   if (!firstMapStep) return null;
 
