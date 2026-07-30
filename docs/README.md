@@ -33,6 +33,8 @@
 
 - [`superpowers/specs/2026-07-30-staff-event-workflow-design.md`](./superpowers/specs/2026-07-30-staff-event-workflow-design.md):
   병원 전산 이벤트 자동 수신, 간호사 예외 처리, 원무 안내 관리와 보호자 화면 반영 설계
+- [`superpowers/specs/2026-07-30-restriction-guidance-design.md`](./superpowers/specs/2026-07-30-restriction-guidance-design.md):
+  위암 수술·대장내시경 공식 제한 안내, 질문 목록과 선택적 직원 추가 제한 설계
 
 ## 아카이브
 
