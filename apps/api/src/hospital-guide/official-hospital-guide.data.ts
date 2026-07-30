@@ -4,9 +4,9 @@ import {
   type GuidePlace,
 } from '@ready-on/contracts';
 
-const checkedAt = '2026-07-30';
-const guideRoot =
-  'https://www.samsunghospital.com/_newhome/info/guide';
+const checkedAt = '2026-07-31';
+const officialGuidePage =
+  'https://www.samsunghospital.com/home/info/guide/hmain.do?new';
 const standardImageRoot =
   'https://www.samsunghospital.com/_newhome/ui/home/static/img/hospital/guide';
 const protonImageRoot =
@@ -191,6 +191,9 @@ function imageUrl(
   directory: string,
   floor: string,
 ) {
+  if (buildingId === 'CANCER' && floor === '1F') {
+    return 'https://www.samsunghospital.com/_newhome/ui/home/static/img/info/guide/map/map_cancer_01.png';
+  }
   if (buildingId === 'PROTON') {
     return `${protonImageRoot}/${floor}/proton-${floor}-0.png`;
   }
@@ -210,7 +213,7 @@ export const officialHospitalGuideCatalog =
     ).map(([id, definition]) => ({
       id,
       name: definition.name,
-      sourceUrl: `${guideRoot}/${definition.directory}/${definition.floors[0]}.html`,
+      sourceUrl: officialGuidePage,
       floors: definition.floors.map((code) => {
         const level = floorLevel(code);
         return {
@@ -218,7 +221,7 @@ export const officialHospitalGuideCatalog =
           level,
           label: floorLabel(level),
           mapImageUrl: imageUrl(id, definition.directory, code),
-          sourceUrl: `${guideRoot}/${definition.directory}/${code}.html`,
+          sourceUrl: officialGuidePage,
           sourceCheckedAt: checkedAt,
           publicationStatus: 'PUBLIC',
           places: placesByFloor[`${id}:${code}`] ?? [],

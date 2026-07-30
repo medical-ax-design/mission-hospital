@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import {
@@ -52,6 +52,112 @@ describe('SafeNavigationScreen', () => {
     expect(
       screen.getByText('공식 지도에서 위치를 확인하세요'),
     ).toBeInTheDocument();
+  });
+
+  it('암병원 1층에서는 지도에서 현 위치를 선택해 복도 경로를 표시한다', () => {
+    const cancerDestination = {
+      ...destination,
+      id: 'cancer-1f-endoscopy',
+      officialName: '내시경실',
+    };
+    const cancerFloor = {
+      ...createGuideFloor('1F', 1),
+      mapImageUrl:
+        'https://www.samsunghospital.com/_newhome/ui/home/static/img/info/guide/map/map_cancer_01.png',
+    };
+
+    render(
+      <SafeNavigationScreen
+        buildingName="암병원"
+        destination={cancerDestination}
+        floors={[cancerFloor]}
+        onBack={vi.fn()}
+        route={mapOnlyRouteFixture}
+        startFloorCode="1F"
+      />,
+    );
+
+    expect(
+      screen.getByText('지도에서 현재 위치를 선택하세요'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByTestId('prototype-route-destination'),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByTestId('prototype-route-line'),
+    ).not.toBeInTheDocument();
+
+    const map = screen.getByRole('button', {
+      name: '지도에서 현재 위치 선택',
+    });
+    vi.spyOn(map, 'getBoundingClientRect').mockReturnValue({
+      bottom: 848,
+      height: 848,
+      left: 0,
+      right: 945,
+      top: 0,
+      width: 945,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    });
+    fireEvent.click(map, { clientX: 321, clientY: 721 });
+
+    expect(
+      screen.getByTestId('prototype-route-line'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByTestId('prototype-route-user-marker'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/붉은 선을 따라 이동하세요/),
+    ).toBeInTheDocument();
+  });
+
+  it('복도가 아닌 곳을 선택하면 경로 대신 재선택 안내를 표시한다', () => {
+    const cancerFloor = {
+      ...createGuideFloor('1F', 1),
+      mapImageUrl:
+        'https://www.samsunghospital.com/_newhome/ui/home/static/img/info/guide/map/map_cancer_01.png',
+    };
+
+    render(
+      <SafeNavigationScreen
+        buildingName="암병원"
+        destination={{
+          ...destination,
+          id: 'cancer-1f-endoscopy',
+          officialName: '내시경실',
+        }}
+        floors={[cancerFloor]}
+        onBack={vi.fn()}
+        route={mapOnlyRouteFixture}
+        startFloorCode="1F"
+      />,
+    );
+
+    const map = screen.getByRole('button', {
+      name: '지도에서 현재 위치 선택',
+    });
+    vi.spyOn(map, 'getBoundingClientRect').mockReturnValue({
+      bottom: 848,
+      height: 848,
+      left: 0,
+      right: 945,
+      top: 0,
+      width: 945,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    });
+    fireEvent.click(map, { clientX: 850, clientY: 80 });
+
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      '복도 또는 출입구 위에서',
+    );
+    expect(
+      screen.queryByTestId('prototype-route-line'),
+    ).not.toBeInTheDocument();
   });
 
   it('병원이 검증한 엘리베이터 경로를 층별 선과 전환 화면으로 분리한다', async () => {
