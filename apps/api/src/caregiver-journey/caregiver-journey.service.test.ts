@@ -1,4 +1,4 @@
-import { NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { CaregiverJourneyService } from './caregiver-journey.service.js';
 import { MemoryCaregiverJourneyRepository } from './memory-caregiver-journey.repository.js';
@@ -44,6 +44,19 @@ describe('CaregiverJourneyService', () => {
       'RECOVERY',
       'COMPLETED',
     ]);
+  });
+
+  it('대장내시경 여정에 수술 단계를 적용하지 않는다', async () => {
+    const repository = new MemoryCaregiverJourneyRepository();
+    await repository.resetDemo('morning-colonoscopy');
+    const colonoscopyService = new CaregiverJourneyService(repository);
+
+    await expect(
+      colonoscopyService.advanceDemo(),
+    ).rejects.toBeInstanceOf(BadRequestException);
+    expect((await colonoscopyService.getDemo()).treatment.label).toBe(
+      '검사 준비 중',
+    );
   });
 
   it('회복실 전에는 의료진 확인 요약을 공개하지 않는다', async () => {

@@ -32,6 +32,7 @@ describe('RestrictionGuidanceService', () => {
       normalizedQuery: '딸기',
       resultType: 'DO_NOT_PROVIDE',
       matchedRuleId: 'colonoscopy-seeded-fruit',
+      reason: '병원 공식 검사 준비 안내에서 피하도록 안내한 항목입니다.',
     });
   });
 
@@ -53,7 +54,33 @@ describe('RestrictionGuidanceService', () => {
 
     expect(result.resultType).toBe('DO_NOT_PROVIDE');
     expect(result.matchedRuleId).toBe('colonoscopy-water');
+    expect(result.effectiveText).toBe(
+      '검사 당일 오전 5시부터 검사 종료 전까지',
+    );
   });
+
+  it('절대 금식 단계의 약은 예약 안내 확인을 요청한다', async () => {
+    await service.advancePhase();
+    await service.advancePhase();
+
+    const result = await service.search('혈압약');
+
+    expect(result.resultType).toBe('CHECK_BEFORE_PROVIDING');
+    expect(result.reason).toContain('예약 안내');
+  });
+
+  it.each(['음료', '사탕', '전자담배'])(
+    '공식 안내에 직접 없는 %s은 금지로 확장하지 않는다',
+    async (query) => {
+      await service.advancePhase();
+      await service.advancePhase();
+
+      const result = await service.search(query);
+
+      expect(result.resultType).toBe('CHECK_BEFORE_PROVIDING');
+      expect(result.matchedRuleId).toBeNull();
+    },
+  );
 
   it('같은 열린 질문은 중복 저장하지 않는다', async () => {
     const first = await service.saveQuestion('커피');

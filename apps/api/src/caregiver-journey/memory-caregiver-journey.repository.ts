@@ -61,7 +61,7 @@ function createColonoscopyJourney(): CaregiverJourney {
       id: 'patient-colonoscopy-demo',
       displayName: '박영희',
       age: 67,
-      procedureName: '오전 대장내시경',
+      procedureName: '건강검진 오전 대장내시경',
       scheduledAt: '2026-07-31T00:00:00.000Z',
     },
     caregiver: {

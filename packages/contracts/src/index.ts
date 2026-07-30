@@ -28,6 +28,7 @@ export {
   RestrictionPhaseSchema,
   RestrictionResultTypeSchema,
   RestrictionSearchResponseSchema,
+  RestrictionSearchQuerySchema,
   RestrictionSearchResultSchema,
   RestrictionSourceSchema,
   SavedQuestionListResponseSchema,

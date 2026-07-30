@@ -62,7 +62,7 @@ const colonoscopyJourney: CaregiverJourney = {
     ...unlinkedJourney.patient,
     id: 'patient-colonoscopy-demo',
     displayName: '박영희',
-    procedureName: '오전 대장내시경',
+    procedureName: '건강검진 오전 대장내시경',
   },
   treatment: {
     ...unlinkedJourney.treatment,
@@ -87,7 +87,7 @@ const colonoscopyGuidance: RestrictionGuidance = {
       category: 'FOOD',
       itemName: '씨 있는 과일',
       resultType: 'DO_NOT_PROVIDE',
-      reason: '씨가 장에 남아 검사 시야를 방해할 수 있습니다.',
+      reason: '병원 공식 검사 준비 안내에서 피하도록 안내한 항목입니다.',
       effectiveText: '검사 3일 전부터 검사 종료 전까지',
     },
   ],
@@ -117,7 +117,7 @@ function createFakeApi(
     getQuestions: vi.fn().mockResolvedValue([]),
     saveQuestion: vi.fn(),
     completeQuestion: vi.fn(),
-    deleteQuestion: vi.fn(),
+    deleteQuestion: vi.fn().mockResolvedValue(undefined),
     ...overrides,
   };
 }
@@ -532,7 +532,7 @@ describe('CaregiverJourneyApp', () => {
     const savedQuestion: SavedQuestion = {
       id: 'question-1',
       query: '커피',
-      questionText: '커피를 마셔도 되는지 확인해 주세요.',
+      questionText: '커피 제공 여부를 의료진에게 확인해 주세요.',
       reason: '현재 병원 승인 안내만으로 확인할 수 없습니다.',
       status: 'OPEN',
       createdAt: '2026-07-30T06:00:00.000Z',
@@ -581,12 +581,69 @@ describe('CaregiverJourneyApp', () => {
     );
 
     expect(
-      await screen.findByText('커피를 마셔도 되는지 확인해 주세요.'),
+      await screen.findByText('커피 제공 여부를 의료진에게 확인해 주세요.'),
     ).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: '확인 완료' }));
     expect(api.completeQuestion).toHaveBeenCalledWith('question-1');
     expect(await screen.findByText('확인 완료됨')).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole('button', {
+        name: '질문 삭제: 커피 제공 여부를 의료진에게 확인해 주세요.',
+      }),
+    );
+    expect(api.deleteQuestion).toHaveBeenCalledWith('question-1');
+    expect(
+      screen.queryByText('커피 제공 여부를 의료진에게 확인해 주세요.'),
+    ).not.toBeInTheDocument();
+  });
+
+  it('검색 실패 후 입력과 화면을 유지해 같은 행동을 재시도한다', async () => {
+    const user = userEvent.setup();
+    const searchRestrictions = vi
+      .fn()
+      .mockRejectedValueOnce(new Error('temporary'))
+      .mockResolvedValueOnce({
+        query: '커피',
+        normalizedQuery: '커피',
+        resultType: 'CHECK_BEFORE_PROVIDING',
+        headline: '확인 전에는 제공하지 마세요',
+        reason: '현재 병원 승인 안내만으로 확인할 수 없습니다.',
+        effectiveText: '의료진 확인 전까지',
+        matchedRuleId: null,
+        source: colonoscopyGuidance.source,
+      });
+    const api = createFakeApi({
+      getDemo: vi.fn().mockResolvedValue(colonoscopyJourney),
+      getRestrictions: vi.fn().mockResolvedValue(colonoscopyGuidance),
+      searchRestrictions,
+    });
+
+    render(<CaregiverJourneyApp api={api} />);
+    await user.click(
+      await screen.findByRole('button', {
+        name: '지금 피해야 할 것 보기',
+      }),
+    );
+    const input = screen.getByRole('searchbox', {
+      name: '음식이나 행동 검색',
+    });
+    await user.type(input, '커피');
+    await user.click(screen.getByRole('button', { name: '검색' }));
+
+    expect(
+      await screen.findByRole('alert'),
+    ).toHaveTextContent('요청을 완료하지 못했습니다');
+    expect(input).toHaveValue('커피');
+
+    await user.click(screen.getByRole('button', { name: '검색' }));
+    expect(
+      await screen.findByRole('heading', {
+        name: '확인 전에는 제공하지 마세요',
+      }),
+    ).toBeInTheDocument();
+    expect(searchRestrictions).toHaveBeenCalledTimes(2);
   });
 });
 

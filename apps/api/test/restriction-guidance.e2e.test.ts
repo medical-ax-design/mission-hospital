@@ -47,7 +47,9 @@ describe('restriction guidance API', () => {
     const journey = CaregiverJourneyResponseSchema.parse(response.body)
       .journey;
     expect(journey.scenarioId).toBe('morning-colonoscopy');
-    expect(journey.patient.procedureName).toBe('오전 대장내시경');
+    expect(journey.patient.procedureName).toBe(
+      '건강검진 오전 대장내시경',
+    );
   });
 
   it('현재 단계 제한과 딸기 검색 결과를 반환한다', async () => {
@@ -67,6 +69,19 @@ describe('restriction guidance API', () => {
       searchResponse.body,
     ).result;
     expect(result.resultType).toBe('DO_NOT_PROVIDE');
+  });
+
+  it('반복되거나 너무 긴 검색어는 400으로 거부한다', async () => {
+    await request(app.getHttpServer())
+      .get(
+        '/caregiver-journeys/demo/restrictions/search?q=딸기&q=커피',
+      )
+      .expect(400);
+
+    await request(app.getHttpServer())
+      .get('/caregiver-journeys/demo/restrictions/search')
+      .query({ q: '가'.repeat(81) })
+      .expect(400);
   });
 
   it('절대 금식 단계에서 물을 제한한다', async () => {

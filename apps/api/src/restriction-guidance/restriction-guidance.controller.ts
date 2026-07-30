@@ -9,7 +9,10 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { CreateSavedQuestionSchema } from '@ready-on/contracts';
+import {
+  CreateSavedQuestionSchema,
+  RestrictionSearchQuerySchema,
+} from '@ready-on/contracts';
 import { RestrictionGuidanceService } from './restriction-guidance.service.js';
 
 @Controller('caregiver-journeys/demo')
@@ -25,8 +28,12 @@ export class RestrictionGuidanceController {
   }
 
   @Get('restrictions/search')
-  async search(@Query('q') query?: string) {
-    return { result: await this.service.search(query ?? '') };
+  async search(@Query('q') query: unknown) {
+    const parsed = RestrictionSearchQuerySchema.safeParse(query);
+    if (!parsed.success) {
+      throw new BadRequestException('검색어를 확인해 주세요.');
+    }
+    return { result: await this.service.search(parsed.data) };
   }
 
   @Post('restrictions/advance')

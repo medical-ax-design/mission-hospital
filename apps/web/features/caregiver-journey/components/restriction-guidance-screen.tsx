@@ -8,6 +8,7 @@ import { MobileShell } from './mobile-shell';
 interface RestrictionGuidanceScreenProps {
   guidance: RestrictionGuidance;
   searchResult: RestrictionSearchResult | null;
+  actionError: string | null;
   busy: boolean;
   demoMode: boolean;
   onHome: () => void;
@@ -20,6 +21,7 @@ interface RestrictionGuidanceScreenProps {
 export function RestrictionGuidanceScreen({
   guidance,
   searchResult,
+  actionError,
   busy,
   demoMode,
   onHome,
@@ -75,6 +77,12 @@ export function RestrictionGuidanceScreen({
             </button>
           </div>
         </form>
+
+        {actionError && (
+          <p className="action-error" role="alert">
+            {actionError}
+          </p>
+        )}
 
         {searchResult && (
           <section className="search-result" aria-live="polite">

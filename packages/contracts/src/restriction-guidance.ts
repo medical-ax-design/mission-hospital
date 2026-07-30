@@ -67,6 +67,8 @@ export const RestrictionSearchResponseSchema = z.object({
   result: RestrictionSearchResultSchema,
 });
 
+export const RestrictionSearchQuerySchema = z.string().trim().min(1).max(80);
+
 export const SavedQuestionStatusSchema = z.enum(['OPEN', 'DONE']);
 
 export const SavedQuestionSchema = z.object({
@@ -88,7 +90,7 @@ export const SavedQuestionListResponseSchema = z.object({
 });
 
 export const CreateSavedQuestionSchema = z.object({
-  query: z.string().trim().min(1).max(80),
+  query: RestrictionSearchQuerySchema,
 });
 
 export type RestrictionPhaseCode = z.infer<

@@ -28,7 +28,12 @@ Base URL 예시: `http://localhost:3001`
 | `POST` | `/caregiver-journeys/demo/restrictions/advance` | `RestrictionGuidanceResponse` |
 
 제한 API는 오전 대장내시경 시나리오에서만 사용한다. 다른 시나리오인
-경우 `400`을 반환한다. 빈 검색어도 `400`이다.
+경우 `400`을 반환한다. 검색어는 공백 제거 후 1자 이상 80자 이하의
+단일 문자열이며, 빈 값·배열·초과 길이는 `400`이다.
+
+`POST /caregiver-journeys/demo/advance`는 위암 수술 시나리오에서만
+사용하며 대장내시경 시나리오에서는 `400`을 반환한다. 대장내시경
+준비 단계는 제한 전용 advance API로만 전환한다.
 
 검색 결과의 `resultType`은 다음 두 값만 허용한다.
 

@@ -51,6 +51,7 @@ export function CaregiverJourneyApp({
   const [searchResult, setSearchResult] =
     useState<RestrictionSearchResult | null>(null);
   const [questions, setQuestions] = useState<SavedQuestion[]>([]);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const loadJourney = useCallback(async () => {
     setError(false);
@@ -188,22 +189,30 @@ export function CaregiverJourneyApp({
       <RestrictionGuidanceScreen
         guidance={guidance}
         searchResult={searchResult}
+        actionError={actionError}
         busy={busy}
         demoMode={demoMode}
         onHome={() => {
           setSearchResult(null);
+          setActionError(null);
           setView('home');
         }}
         onSearch={(query) => {
+          setActionError(null);
           setBusy(true);
           void api
             .searchRestrictions(query)
             .then(setSearchResult)
-            .catch(() => setError(true))
+            .catch(() =>
+              setActionError(
+                '요청을 완료하지 못했습니다. 다시 시도해 주세요.',
+              ),
+            )
             .finally(() => setBusy(false));
         }}
         onSaveQuestion={() => {
           if (!searchResult) return;
+          setActionError(null);
           setBusy(true);
           void api
             .saveQuestion(searchResult.query)
@@ -215,10 +224,15 @@ export function CaregiverJourneyApp({
                 return [...others, question];
               });
             })
-            .catch(() => setError(true))
+            .catch(() =>
+              setActionError(
+                '요청을 완료하지 못했습니다. 다시 시도해 주세요.',
+              ),
+            )
             .finally(() => setBusy(false));
         }}
         onOpenQuestions={() => {
+          setActionError(null);
           setBusy(true);
           void api
             .getQuestions()
@@ -226,10 +240,15 @@ export function CaregiverJourneyApp({
               setQuestions(nextQuestions);
               setView('questions');
             })
-            .catch(() => setError(true))
+            .catch(() =>
+              setActionError(
+                '요청을 완료하지 못했습니다. 다시 시도해 주세요.',
+              ),
+            )
             .finally(() => setBusy(false));
         }}
         onAdvance={() => {
+          setActionError(null);
           setBusy(true);
           void api
             .advanceRestrictionPhase()
@@ -237,7 +256,11 @@ export function CaregiverJourneyApp({
               setGuidance(nextGuidance);
               setSearchResult(null);
             })
-            .catch(() => setError(true))
+            .catch(() =>
+              setActionError(
+                '요청을 완료하지 못했습니다. 다시 시도해 주세요.',
+              ),
+            )
             .finally(() => setBusy(false));
         }}
       />
@@ -248,9 +271,14 @@ export function CaregiverJourneyApp({
     return (
       <SavedQuestionsScreen
         questions={questions}
+        actionError={actionError}
         busy={busy}
-        onBack={() => setView('restrictions')}
+        onBack={() => {
+          setActionError(null);
+          setView('restrictions');
+        }}
         onComplete={(questionId) => {
+          setActionError(null);
           setBusy(true);
           void api
             .completeQuestion(questionId)
@@ -261,7 +289,28 @@ export function CaregiverJourneyApp({
                 ),
               );
             })
-            .catch(() => setError(true))
+            .catch(() =>
+              setActionError(
+                '요청을 완료하지 못했습니다. 다시 시도해 주세요.',
+              ),
+            )
+            .finally(() => setBusy(false));
+        }}
+        onDelete={(questionId) => {
+          setActionError(null);
+          setBusy(true);
+          void api
+            .deleteQuestion(questionId)
+            .then(() => {
+              setQuestions((current) =>
+                current.filter(({ id }) => id !== questionId),
+              );
+            })
+            .catch(() =>
+              setActionError(
+                '요청을 완료하지 못했습니다. 다시 시도해 주세요.',
+              ),
+            )
             .finally(() => setBusy(false));
         }}
       />
@@ -287,6 +336,7 @@ export function CaregiverJourneyApp({
             setGuidance(null);
             setSearchResult(null);
             setQuestions([]);
+            setActionError(null);
             setView('home');
           })
           .catch(() => setError(true))
