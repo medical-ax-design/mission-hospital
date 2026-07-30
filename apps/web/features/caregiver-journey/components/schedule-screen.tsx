@@ -15,6 +15,7 @@ import {
   type RootTab,
 } from './bottom-navigation';
 import { MobileShell } from './mobile-shell';
+import { RootPageHeader } from './root-page-header';
 
 interface ScheduleScreenProps {
   journey: CaregiverJourney;
@@ -131,15 +132,16 @@ export function ScheduleScreen({
   return (
     <MobileShell compactHeader>
       <main className="screen screen--with-navigation schedule-screen">
-        <header className="subpage-heading">
-          <div>
-            <p className="eyebrow">환자와 공유된 일정</p>
-            <h1>환자 일정</h1>
-          </div>
-          <span className="patient-mini-badge" aria-hidden="true">
-            {journey.patient.displayName.slice(0, 1)}
-          </span>
-        </header>
+        <RootPageHeader
+          accessory={
+            <span className="patient-mini-badge" aria-hidden="true">
+              {journey.patient.displayName.slice(0, 1)}
+            </span>
+          }
+          description={`${journey.patient.displayName} 환자와 공유된 일정입니다.`}
+          eyebrow="일정"
+          title="환자 일정"
+        />
 
         <section className="selected-date-card" aria-live="polite">
           <div>

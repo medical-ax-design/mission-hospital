@@ -6,6 +6,7 @@ import {
   type RootTab,
 } from '../../caregiver-journey/components/bottom-navigation';
 import { MobileShell } from '../../caregiver-journey/components/mobile-shell';
+import { RootPageHeader } from '../../caregiver-journey/components/root-page-header';
 
 interface HospitalGuideHomeScreenProps {
   catalog: HospitalGuideCatalog | null;
@@ -36,12 +37,11 @@ export function HospitalGuideHomeScreen({
   return (
     <MobileShell compactHeader>
       <main className="screen screen--with-navigation hospital-guide-home">
-        <p className="eyebrow">목적 기반 병원 이용 가이드</p>
-        <h1 className="page-title">무엇을 하러 가시나요?</h1>
-        <p className="lead">
-          필요한 업무를 먼저 선택하면 공식 처리 방법과 장소를
-          연결해 드립니다.
-        </p>
+        <RootPageHeader
+          description="필요한 업무를 선택하면 공식 처리 방법과 장소를 연결해 드립니다."
+          eyebrow="병원 이용 안내"
+          title="무엇을 하러 가시나요?"
+        />
 
         <form
           className="hospital-purpose-search"
