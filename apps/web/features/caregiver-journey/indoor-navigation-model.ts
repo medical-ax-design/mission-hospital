@@ -97,6 +97,16 @@ export const hospitalMaps = {
       '중환자가족대기실',
     ]),
   },
+  PROTON: {
+    B1F: {
+      building: 'PROTON',
+      floor: 'B1F',
+      imageUrl:
+        'https://www.samsunghospital.com/_newhome/ui/proton/static/img/popup_guide/proton/B1F/proton-B1F-0.png',
+      sourceUrl: `${guideRoot}/proton/B1F.html`,
+      landmarks: ['양성자치료센터 연결 지점'],
+    },
+  },
 } satisfies Record<
   HospitalBuilding,
   Record<string, HospitalMap>
@@ -106,6 +116,7 @@ export const buildingLabels: Record<HospitalBuilding, string> = {
   MAIN: '본관',
   ANNEX: '별관',
   CANCER: '암병원',
+  PROTON: '양성자치료센터',
 };
 
 export function getHospitalMap(

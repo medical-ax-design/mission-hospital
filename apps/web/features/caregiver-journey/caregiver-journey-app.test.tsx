@@ -8,6 +8,10 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import type { CaregiverJourneyApi } from './api';
 import { CaregiverJourneyApp } from './caregiver-journey-app';
+import {
+  documentIssuanceResultFixture,
+  hospitalGuideCatalogFixture,
+} from '../hospital-guide/hospital-guide-test-fixtures';
 
 const unlinkedJourney: CaregiverJourney = {
   id: 'demo',
@@ -150,6 +154,12 @@ function createFakeApi(
     saveQuestion: vi.fn(),
     completeQuestion: vi.fn(),
     deleteQuestion: vi.fn().mockResolvedValue(undefined),
+    getHospitalGuideCatalog: vi
+      .fn()
+      .mockResolvedValue(hospitalGuideCatalogFixture),
+    searchHospitalGuidePurpose: vi
+      .fn()
+      .mockResolvedValue(documentIssuanceResultFixture),
     ...overrides,
   };
 }

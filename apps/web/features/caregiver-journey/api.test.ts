@@ -3,6 +3,10 @@ import {
   CaregiverJourneyApiError,
   createCaregiverJourneyApi,
 } from './api';
+import {
+  documentIssuanceResultFixture,
+  hospitalGuideCatalogFixture,
+} from '../hospital-guide/hospital-guide-test-fixtures';
 
 const journeyResponse = {
   journey: {
@@ -235,5 +239,44 @@ describe('caregiver journey API client', () => {
     await expect(api.getRestrictions()).rejects.toMatchObject({
       name: 'ZodError',
     });
+  });
+
+  it('병원 안내 카탈로그를 계약으로 파싱한다', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({ catalog: hospitalGuideCatalogFixture }),
+        { status: 200 },
+      ),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const api = createCaregiverJourneyApi('https://api.example.test');
+
+    await expect(api.getHospitalGuideCatalog()).resolves.toEqual(
+      hospitalGuideCatalogFixture,
+    );
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://api.example.test/hospital-guide/catalog',
+      { method: 'GET' },
+    );
+  });
+
+  it('목적 검색어를 인코딩해 공식 처리 방법을 조회한다', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({ result: documentIssuanceResultFixture }),
+        { status: 200 },
+      ),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const api = createCaregiverJourneyApi('https://api.example.test');
+
+    await expect(api.searchHospitalGuidePurpose('서류 발급')).resolves
+      .toEqual(documentIssuanceResultFixture);
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://api.example.test/hospital-guide/purposes/search?q=%EC%84%9C%EB%A5%98%20%EB%B0%9C%EA%B8%89',
+      { method: 'GET' },
+    );
   });
 });
