@@ -340,44 +340,47 @@ describe('CaregiverJourneyApp', () => {
     expect(screen.getByText('본관 원무 수납에서 확인')).toBeInTheDocument();
   });
 
-  it('발표 모드에서만 병원 확인 단계를 전환한다', async () => {
+  it('발표 모드 치료 화면에서만 로컬 단계 제어를 제공한다', async () => {
     const user = userEvent.setup();
-    const linkedJourney = {
-      ...unlinkedJourney,
-      linked: true,
-    };
+    const linkedJourney = { ...unlinkedJourney, linked: true };
     const api = createFakeApi({
       getDemo: vi.fn().mockResolvedValue(linkedJourney),
-      advanceDemo: vi.fn().mockResolvedValue({
-        ...linkedJourney,
-        treatment: {
-          ...linkedJourney.treatment,
-          stage: 'IN_OPERATING_ROOM',
-          label: '수술실 입실',
-        },
-      }),
     });
 
     const { unmount } = render(<CaregiverJourneyApp api={api} />);
-
-    await screen.findByRole('heading', { name: /수술 준비 중/ });
+    await user.click(
+      await screen.findByRole('button', { name: '과정 알아보기' }),
+    );
     expect(
-      screen.queryByRole('button', { name: '다음 단계로 전환' }),
+      screen.queryByRole('complementary', {
+        name: '발표용 데모 제어',
+      }),
     ).not.toBeInTheDocument();
 
     unmount();
+    sessionStorage.clear();
     render(<CaregiverJourneyApp api={api} demoMode />);
-
     await user.click(
-      await screen.findByRole('button', {
-        name: '다음 단계로 전환',
-      }),
+      await screen.findByRole('button', { name: '과정 알아보기' }),
     );
 
-    expect(api.advanceDemo).toHaveBeenCalledTimes(1);
     expect(
-      await screen.findByRole('heading', { name: /수술실 입실/ }),
+      screen.getByRole('complementary', {
+        name: '발표용 데모 제어',
+      }),
     ).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: '다음' }));
+    expect(
+      screen.getByRole('heading', {
+        name: '발표용 병원 상태 시연',
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getAllByText('수술실 입실').length).toBeGreaterThan(0);
+    expect(screen.getByText('AI로 재구성한 일반 과정')).toBeInTheDocument();
+    expect(
+      screen.getByText('현재 환자의 실시간 영상이 아닙니다'),
+    ).toBeInTheDocument();
+    expect(api.advanceDemo).not.toHaveBeenCalled();
   });
 
   it('세 개의 주요 탭을 제공한다', async () => {

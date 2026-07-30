@@ -188,6 +188,7 @@ export function CaregiverJourneyApp({
     return (
       <TreatmentProgressScreen
         journey={journey}
+        demoMode={demoMode}
         onHome={() => setView('home')}
       />
     );
@@ -452,14 +453,6 @@ export function CaregiverJourneyApp({
             setActionError(null);
             setView('home');
           })
-          .catch(() => setError(true))
-          .finally(() => setBusy(false));
-      }}
-      onAdvance={() => {
-        setBusy(true);
-        void api
-          .advanceDemo()
-          .then(setJourney)
           .catch(() => setError(true))
           .finally(() => setBusy(false));
       }}

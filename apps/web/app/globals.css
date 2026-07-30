@@ -116,6 +116,10 @@ button:focus-visible {
   padding-bottom: 110px;
 }
 
+.screen--with-treatment-demo {
+  padding-bottom: 152px;
+}
+
 .bottom-navigation {
   position: fixed;
   bottom: 0;
@@ -1628,6 +1632,50 @@ h2 {
   cursor: pointer;
   font-size: 10px;
   font-weight: 800;
+}
+
+.treatment-demo-controls {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  z-index: 10;
+  width: min(100%, 430px);
+  padding: 10px 18px calc(10px + env(safe-area-inset-bottom));
+  border-top: 1px solid #cbbbe4;
+  background: rgb(249 246 255 / 97%);
+  box-shadow: 0 -12px 30px rgb(40 28 63 / 12%);
+  transform: translateX(-50%);
+  backdrop-filter: blur(14px);
+}
+
+.treatment-demo-controls > div:first-child,
+.treatment-demo-controls__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.treatment-demo-controls > div:first-child {
+  margin-bottom: 7px;
+  color: #574276;
+  font-size: 11px;
+}
+
+.treatment-demo-controls__actions button {
+  min-height: 44px;
+  flex: 1;
+  border: 0;
+  border-radius: 11px;
+  color: #fff;
+  background: #6a4a98;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.treatment-demo-controls__actions button:disabled {
+  color: #91889e;
+  background: #e7e2ed;
 }
 
 .state-screen {
