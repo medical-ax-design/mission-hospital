@@ -29,17 +29,7 @@ const validJourney = {
     estimatedMinutes: 15,
     requiredItems: ['보호자 신분증'],
   },
-  guide: {
-    currentLocation: '수술 대기실',
-    destination: '본관 1층 3번 키오스크',
-    building: 'MAIN',
-    floor: '1F',
-    location: '3번 키오스크',
-    estimatedTravelMinutes: 6,
-    ticketRequired: false,
-    steps: ['중앙 엘리베이터로 이동', '1층 원무 방향으로 이동'],
-    fallback: '발급되지 않으면 옆 제증명 창구를 방문하세요.',
-  },
+  guide: null,
   schedules: [
     {
       id: 'schedule-surgery',

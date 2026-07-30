@@ -23,6 +23,7 @@ export const HospitalBuildingSchema = z.enum([
   'MAIN',
   'ANNEX',
   'CANCER',
+  'PROTON',
 ]);
 
 export const PatientScheduleTypeSchema = z.enum([

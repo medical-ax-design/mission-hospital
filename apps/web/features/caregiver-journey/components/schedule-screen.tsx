@@ -26,6 +26,7 @@ const buildingLabels: Record<HospitalBuilding, string> = {
   MAIN: '본관',
   ANNEX: '별관',
   CANCER: '암병원',
+  PROTON: '양성자치료센터',
 };
 
 function monthFromSchedule(schedule: PatientSchedule) {

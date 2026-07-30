@@ -30,8 +30,6 @@ export function CaregiverTaskScreen({
     );
   }
 
-  const guide = journey.guide;
-
   return (
     <MobileShell compactHeader>
       <main className="screen">
@@ -43,23 +41,10 @@ export function CaregiverTaskScreen({
         <p className="eyebrow">지금 할 일 하나만 안내할게요</p>
         <h1 className="page-title">{journey.task.title}</h1>
 
-        <div className="task-meta" aria-label="업무 예상 정보">
-          <span>약 {journey.task.estimatedMinutes}분</span>
-          <span>
-            {guide?.ticketRequired
-              ? '번호표 필요'
-              : '번호표 필요 없음'}
-          </span>
-        </div>
-
         <section className="destination-card" aria-labelledby="destination">
-          <p>처리 장소</p>
-          <h2 id="destination">
-            {guide?.destination ?? '가까운 안내 데스크'}
-          </h2>
-          <small>
-            현재 위치 · {guide?.currentLocation ?? '위치 확인 필요'}
-          </small>
+          <p>처리 방법 확인</p>
+          <h2 id="destination">온라인·모바일·병원 방문</h2>
+          <small>삼성서울병원 공식 안내에서 확인합니다.</small>
         </section>
 
         <section className="detail-section" aria-labelledby="required-items">
@@ -80,9 +65,8 @@ export function CaregiverTaskScreen({
             <h2 id="before-moving">이동 전 확인</h2>
           </div>
           <p className="detail-copy">
-            환자가 치료 중인 동안 보호자가 대신 처리할 수 있는
-            발표용 예시 업무입니다. 실제 이용 가능 여부는 병원 안내를
-            따라야 합니다.
+            서류 종류와 신청자 관계에 따라 준비물과 발급 방법이
+            달라질 수 있습니다. 공식 처리 방법을 먼저 확인해 주세요.
           </p>
         </section>
 
@@ -91,7 +75,7 @@ export function CaregiverTaskScreen({
           onClick={onStartGuide}
           type="button"
         >
-          경로 안내 시작
+          공식 처리 방법 확인
         </button>
       </main>
     </MobileShell>

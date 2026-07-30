@@ -3,6 +3,10 @@ import {
   CaregiverJourneyApiError,
   createCaregiverJourneyApi,
 } from './api';
+import {
+  documentIssuanceResultFixture,
+  hospitalGuideCatalogFixture,
+} from '../hospital-guide/hospital-guide-test-fixtures';
 
 const journeyResponse = {
   journey: {
@@ -33,21 +37,7 @@ const journeyResponse = {
       estimatedMinutes: 15,
       requiredItems: ['보호자 신분증'],
     },
-    guide: {
-      currentLocation: '수술 대기실',
-      destination: '본관 1층 3번 키오스크',
-      building: 'MAIN',
-      floor: '1F',
-      location: '3번 키오스크',
-      estimatedTravelMinutes: 6,
-      ticketRequired: false,
-      steps: [
-        '중앙 엘리베이터로 이동하세요.',
-        '1층에서 원무 방향으로 이동하세요.',
-        '3번 키오스크에서 제증명 발급을 선택하세요.',
-      ],
-      fallback: '발급되지 않으면 옆 제증명 창구를 방문하세요.',
-    },
+    guide: null,
     schedules: [
       {
         id: 'schedule-surgery',
@@ -235,5 +225,44 @@ describe('caregiver journey API client', () => {
     await expect(api.getRestrictions()).rejects.toMatchObject({
       name: 'ZodError',
     });
+  });
+
+  it('병원 안내 카탈로그를 계약으로 파싱한다', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({ catalog: hospitalGuideCatalogFixture }),
+        { status: 200 },
+      ),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const api = createCaregiverJourneyApi('https://api.example.test');
+
+    await expect(api.getHospitalGuideCatalog()).resolves.toEqual(
+      hospitalGuideCatalogFixture,
+    );
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://api.example.test/hospital-guide/catalog',
+      { method: 'GET' },
+    );
+  });
+
+  it('목적 검색어를 인코딩해 공식 처리 방법을 조회한다', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({ result: documentIssuanceResultFixture }),
+        { status: 200 },
+      ),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const api = createCaregiverJourneyApi('https://api.example.test');
+
+    await expect(api.searchHospitalGuidePurpose('서류 발급')).resolves
+      .toEqual(documentIssuanceResultFixture);
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://api.example.test/hospital-guide/purposes/search?q=%EC%84%9C%EB%A5%98%20%EB%B0%9C%EA%B8%89',
+      { method: 'GET' },
+    );
   });
 });

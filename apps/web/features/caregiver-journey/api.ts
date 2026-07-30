@@ -4,6 +4,12 @@ import {
   type DemoScenarioId,
 } from '@ready-on/contracts/caregiver-journey';
 import {
+  HospitalGuideCatalogResponseSchema,
+  HospitalGuidePurposeResponseSchema,
+  type HospitalGuideCatalog,
+  type HospitalGuidePurposeResult,
+} from '@ready-on/contracts/hospital-guide';
+import {
   RestrictionGuidanceResponseSchema,
   RestrictionSearchResponseSchema,
   SavedQuestionListResponseSchema,
@@ -26,6 +32,10 @@ export interface CaregiverJourneyApi {
   saveQuestion(query: string): Promise<SavedQuestion>;
   completeQuestion(questionId: string): Promise<SavedQuestion>;
   deleteQuestion(questionId: string): Promise<void>;
+  getHospitalGuideCatalog(): Promise<HospitalGuideCatalog>;
+  searchHospitalGuidePurpose(
+    query: string,
+  ): Promise<HospitalGuidePurposeResult>;
 }
 
 export class CaregiverJourneyApiError extends Error {
@@ -139,6 +149,19 @@ export function createCaregiverJourneyApi(
         `/caregiver-journeys/demo/questions/${encodeURIComponent(questionId)}`,
         { method: 'DELETE' },
       );
+    },
+    async getHospitalGuideCatalog() {
+      const body = await requestJson('/hospital-guide/catalog', {
+        method: 'GET',
+      });
+      return HospitalGuideCatalogResponseSchema.parse(body).catalog;
+    },
+    async searchHospitalGuidePurpose(query) {
+      const body = await requestJson(
+        `/hospital-guide/purposes/search?q=${encodeURIComponent(query)}`,
+        { method: 'GET' },
+      );
+      return HospitalGuidePurposeResponseSchema.parse(body).result;
     },
   };
 }

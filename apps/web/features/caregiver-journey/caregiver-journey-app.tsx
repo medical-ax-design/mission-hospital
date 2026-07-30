@@ -2,6 +2,11 @@
 
 import type { CaregiverJourney } from '@ready-on/contracts/caregiver-journey';
 import type {
+  GuideBuildingId,
+  HospitalGuideCatalog,
+  HospitalGuidePurposeResult,
+} from '@ready-on/contracts/hospital-guide';
+import type {
   RestrictionGuidance,
   RestrictionSearchResult,
   SavedQuestion,
@@ -14,24 +19,30 @@ import {
 import { CaregiverHomeScreen } from './components/caregiver-home-screen';
 import { CaregiverTaskScreen } from './components/caregiver-task-screen';
 import type { RootTab } from './components/bottom-navigation';
-import { IndoorNavigationScreen } from './components/indoor-navigation-screen';
 import { MobileShell } from './components/mobile-shell';
 import { PatientLinkScreen } from './components/patient-link-screen';
-import { PurposeGuideScreen } from './components/purpose-guide-screen';
 import { RestrictionGuidanceScreen } from './components/restriction-guidance-screen';
 import { SavedQuestionsScreen } from './components/saved-questions-screen';
 import { ScheduleScreen } from './components/schedule-screen';
-import { ServiceGuideScreen } from './components/service-guide-screen';
 import { TreatmentProgressScreen } from './components/treatment-progress-screen';
+import { HospitalGuideHomeScreen } from '../hospital-guide/components/hospital-guide-home-screen';
+import { PurposeResultScreen } from '../hospital-guide/components/purpose-result-screen';
+import {
+  BuildingDirectoryScreen,
+  type HospitalGuideTarget,
+} from '../hospital-guide/components/building-directory-screen';
+import { SafeNavigationScreen } from '../hospital-guide/components/safe-navigation-screen';
+import { getRouteAvailability } from '../hospital-guide/hospital-guide-model';
 
 type JourneyView =
   | 'home'
   | 'progress'
   | 'task'
-  | 'guide'
   | 'schedule'
   | 'service-guide'
-  | 'indoor-navigation'
+  | 'hospital-purpose'
+  | 'hospital-directory'
+  | 'safe-navigation'
   | 'restrictions'
   | 'questions';
 
@@ -57,6 +68,33 @@ export function CaregiverJourneyApp({
     useState<RestrictionSearchResult | null>(null);
   const [questions, setQuestions] = useState<SavedQuestion[]>([]);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [hospitalCatalog, setHospitalCatalog] =
+    useState<HospitalGuideCatalog | null>(null);
+  const [hospitalPurpose, setHospitalPurpose] =
+    useState<HospitalGuidePurposeResult | null>(null);
+  const [hospitalGuideTarget, setHospitalGuideTarget] =
+    useState<HospitalGuideTarget | null>(null);
+
+  const openHospitalPurpose = (query: string) => {
+    setActionError(null);
+    setBusy(true);
+
+    const catalogRequest = hospitalCatalog
+      ? Promise.resolve(hospitalCatalog)
+      : api.getHospitalGuideCatalog();
+
+    void Promise.all([
+      catalogRequest,
+      api.searchHospitalGuidePurpose(query),
+    ])
+      .then(([catalog, result]) => {
+        setHospitalCatalog(catalog);
+        setHospitalPurpose(result);
+        setView('hospital-purpose');
+      })
+      .catch(() => setActionError('등록된 목적을 찾지 못했습니다.'))
+      .finally(() => setBusy(false));
+  };
 
   const loadJourney = useCallback(async () => {
     setError(false);
@@ -85,6 +123,17 @@ export function CaregiverJourneyApp({
       setGuidance(null);
     }
   }, [api, journey?.linked, journey?.scenarioId]);
+
+  useEffect(() => {
+    if (view !== 'service-guide' || hospitalCatalog) return;
+
+    setBusy(true);
+    void api
+      .getHospitalGuideCatalog()
+      .then(setHospitalCatalog)
+      .catch(() => setActionError('병원 안내 정보를 불러오지 못했습니다.'))
+      .finally(() => setBusy(false));
+  }, [api, hospitalCatalog, view]);
 
   if (error) {
     return (
@@ -149,65 +198,7 @@ export function CaregiverJourneyApp({
       <CaregiverTaskScreen
         journey={journey}
         onHome={() => setView('home')}
-        onStartGuide={() => setView('guide')}
-      />
-    );
-  }
-
-  if (view === 'guide') {
-    if (journey.guide) {
-      return (
-        <IndoorNavigationScreen
-          journey={journey}
-          destination={{
-            building: journey.guide.building,
-            floor: journey.guide.floor,
-            landmark: journey.guide.location,
-          }}
-          busy={busy}
-          completionLabel="업무 완료"
-          onBack={() => setView('task')}
-          onComplete={() => {
-            if (!journey.task) {
-              setView('home');
-              return;
-            }
-
-            setBusy(true);
-            void api
-              .completeTask(journey.task.id)
-              .then((nextJourney) => {
-                setJourney(nextJourney);
-                setView('home');
-              })
-              .catch(() => setError(true))
-              .finally(() => setBusy(false));
-          }}
-        />
-      );
-    }
-
-    return (
-      <PurposeGuideScreen
-        journey={journey}
-        busy={busy}
-        onBack={() => setView('task')}
-        onComplete={() => {
-          if (!journey.task) {
-            setView('home');
-            return;
-          }
-
-          setBusy(true);
-          void api
-            .completeTask(journey.task.id)
-            .then((nextJourney) => {
-              setJourney(nextJourney);
-              setView('home');
-            })
-            .catch(() => setError(true))
-            .finally(() => setBusy(false));
-        }}
+        onStartGuide={() => openHospitalPurpose('서류 발급')}
       />
     );
   }
@@ -223,24 +214,87 @@ export function CaregiverJourneyApp({
 
   if (view === 'service-guide') {
     return (
-      <ServiceGuideScreen
-        journey={journey}
+      <HospitalGuideHomeScreen
+        catalog={hospitalCatalog}
         guidance={guidance}
-        onOpenTask={() => setView('task')}
-        onOpenNavigation={() => setView('indoor-navigation')}
+        busy={busy}
+        onOpenPurpose={openHospitalPurpose}
+        onOpenDirectory={() => {
+          setHospitalGuideTarget(null);
+          setView('hospital-directory');
+        }}
         onOpenRestrictions={() => setView('restrictions')}
         onSelectTab={(tab: RootTab) => setView(tab)}
       />
     );
   }
 
-  if (view === 'indoor-navigation') {
+  if (view === 'hospital-purpose' && hospitalPurpose) {
     return (
-      <IndoorNavigationScreen
-        journey={journey}
+      <PurposeResultScreen
+        result={hospitalPurpose}
         onBack={() => setView('service-guide')}
+        onOpenDirectory={() => {
+          setHospitalGuideTarget(null);
+          setView('hospital-directory');
+        }}
+        onOpenPlace={(
+          buildingId: GuideBuildingId,
+          floorCode: string,
+          placeId: string,
+        ) => {
+          setHospitalGuideTarget({
+            buildingId,
+            floorCode,
+            placeId,
+          });
+          setView('hospital-directory');
+        }}
       />
     );
+  }
+
+  if (view === 'hospital-directory' && hospitalCatalog) {
+    return (
+      <BuildingDirectoryScreen
+        catalog={hospitalCatalog}
+        initialTarget={hospitalGuideTarget}
+        onBack={() => setView('service-guide')}
+        onNavigate={(target) => {
+          setHospitalGuideTarget(target);
+          setView('safe-navigation');
+        }}
+      />
+    );
+  }
+
+  if (
+    view === 'safe-navigation' &&
+    hospitalCatalog &&
+    hospitalGuideTarget?.placeId
+  ) {
+    const building = hospitalCatalog.buildings.find(
+      ({ id }) => id === hospitalGuideTarget.buildingId,
+    );
+    const floor = building?.floors.find(
+      ({ code }) => code === hospitalGuideTarget.floorCode,
+    );
+    const destination = floor?.places.find(
+      ({ id }) => id === hospitalGuideTarget.placeId,
+    );
+
+    if (building && floor && destination) {
+      return (
+        <SafeNavigationScreen
+          buildingName={building.name}
+          destination={destination}
+          floors={building.floors}
+          onBack={() => setView('hospital-directory')}
+          route={getRouteAvailability(floor, null)}
+          startFloorCode={floor.code}
+        />
+      );
+    }
   }
 
   if (view === 'restrictions' && guidance) {
