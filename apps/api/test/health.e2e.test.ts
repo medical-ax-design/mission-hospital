@@ -26,4 +26,12 @@ describe('health endpoints', () => {
       },
     });
   });
+
+  it('프레임워크 식별 헤더를 노출하지 않는다', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/health/ready')
+      .expect(200);
+
+    expect(response.headers['x-powered-by']).toBeUndefined();
+  });
 });

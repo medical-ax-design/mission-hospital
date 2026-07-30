@@ -167,3 +167,23 @@ Vercel Web, OCI API, Supabase PostgreSQL은 목표 인프라 구성이다.
 첫 프로토타입은 사용자가 건물·층·랜드마크를 선택한 `LocationFix`와
 고정된 가상 경로 그래프를 사용한다. 자동 실내 위치는 별도 병원
 인프라와 정확도 검증 없이는 구현된 것으로 표시하지 않는다.
+
+## 9. OCI API 컨테이너 배포
+
+`apps/api/Dockerfile`은 ARM64를 지원하는 Node.js 22 이미지에서
+NestJS API를 비루트 사용자로 실행한다. 현재 `packages/contracts`가
+TypeScript 소스를 export하므로 컨테이너도 로컬 개발과 동일하게
+`tsx`로 API 진입점을 실행한다. 계약 패키지가 별도 JavaScript 빌드
+산출물을 제공하면 런타임을 `node dist/main.js`로 교체한다.
+
+`deploy/oci/compose.yaml`은 다음 경계를 적용한다.
+
+- API의 `3001` 포트는 Docker 내부 네트워크에만 노출
+- Caddy만 호스트의 `80`, `443/tcp`, `443/udp` 사용
+- Caddy 자동 HTTPS와 NestJS readiness health check
+- API와 Caddy 모두 `unless-stopped` 재시작 정책
+- 실제 API 호스트와 Web Origin은 서버 전용 `.env`에서 주입
+
+실제 공인 IP, OCI OCID, SSH 키, Vercel 토큰과 운영 환경변수는
+Git에 저장하지 않는다. 배포·검증·롤백 절차는
+[`deploy/oci/README.md`](../deploy/oci/README.md)에 정의한다.

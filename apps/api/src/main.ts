@@ -6,6 +6,7 @@ export async function createApp() {
   const app = await NestFactory.create(AppModule, {
     logger: false,
   });
+  app.getHttpAdapter().getInstance().disable('x-powered-by');
   app.enableCors({
     origin: process.env.WEB_ORIGIN ?? 'http://localhost:3000',
   });
