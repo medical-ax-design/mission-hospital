@@ -601,6 +601,190 @@ button:focus-visible {
   margin-top: 16px;
 }
 
+.building-directory > .lead {
+  margin-bottom: 20px;
+}
+
+.building-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.building-tab {
+  min-height: 48px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  color: var(--ink);
+  background: #fff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.building-tab--selected {
+  border-color: var(--green);
+  color: #fff;
+  background: var(--green);
+}
+
+.directory-search {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.directory-search input {
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid #aebdb5;
+  border-radius: 12px;
+  font: inherit;
+}
+
+.directory-search-results {
+  margin-bottom: 18px;
+  padding: 16px;
+  border-radius: 16px;
+  background: var(--soft);
+}
+
+.directory-search-results h2 {
+  margin: 0 0 10px;
+  font-size: 16px;
+}
+
+.directory-search-results ul,
+.floor-place-list ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.directory-search-results button {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.floor-selector {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.floor-selector h2 {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.floor-selector__buttons {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.floor-selector__buttons button {
+  min-height: 43px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  color: var(--ink);
+  background: #fff;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.floor-selector__buttons button[aria-pressed='true'] {
+  border-color: var(--green);
+  color: var(--green-dark);
+  background: #e9f7f0;
+}
+
+.floor-detail {
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
+}
+
+.floor-detail__heading h2 {
+  margin: 4px 0 18px;
+  font-size: 24px;
+}
+
+.floor-map {
+  overflow: hidden;
+  margin: 0 0 22px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #f3f5f4;
+}
+
+.floor-map img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.floor-map figcaption,
+.floor-map--unavailable {
+  padding: 14px 16px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.floor-map--unavailable p {
+  margin: 6px 0 0;
+}
+
+.floor-place-list h3 {
+  margin: 0 0 10px;
+  font-size: 17px;
+}
+
+.floor-place {
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+.floor-place--selected {
+  border: 2px solid var(--green);
+  background: #f0fbf6;
+}
+
+.floor-place__badge {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--green-dark);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.floor-place-list__empty {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
 .indoor-navigation {
   padding-top: 13px;
 }

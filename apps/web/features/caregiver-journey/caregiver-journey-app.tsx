@@ -29,6 +29,10 @@ import { ScheduleScreen } from './components/schedule-screen';
 import { TreatmentProgressScreen } from './components/treatment-progress-screen';
 import { HospitalGuideHomeScreen } from '../hospital-guide/components/hospital-guide-home-screen';
 import { PurposeResultScreen } from '../hospital-guide/components/purpose-result-screen';
+import {
+  BuildingDirectoryScreen,
+  type HospitalGuideTarget,
+} from '../hospital-guide/components/building-directory-screen';
 
 type JourneyView =
   | 'home'
@@ -69,6 +73,8 @@ export function CaregiverJourneyApp({
     useState<HospitalGuideCatalog | null>(null);
   const [hospitalPurpose, setHospitalPurpose] =
     useState<HospitalGuidePurposeResult | null>(null);
+  const [hospitalGuideTarget, setHospitalGuideTarget] =
+    useState<HospitalGuideTarget | null>(null);
 
   const loadJourney = useCallback(async () => {
     setError(false);
@@ -264,7 +270,10 @@ export function CaregiverJourneyApp({
             )
             .finally(() => setBusy(false));
         }}
-        onOpenDirectory={() => setView('hospital-directory')}
+        onOpenDirectory={() => {
+          setHospitalGuideTarget(null);
+          setView('hospital-directory');
+        }}
         onOpenRestrictions={() => setView('restrictions')}
         onSelectTab={(tab: RootTab) => setView(tab)}
       />
@@ -276,31 +285,33 @@ export function CaregiverJourneyApp({
       <PurposeResultScreen
         result={hospitalPurpose}
         onBack={() => setView('service-guide')}
-        onOpenDirectory={() => setView('hospital-directory')}
+        onOpenDirectory={() => {
+          setHospitalGuideTarget(null);
+          setView('hospital-directory');
+        }}
         onOpenPlace={(
-          _buildingId: GuideBuildingId,
-          _floorCode: string,
-          _placeId: string,
-        ) => setView('hospital-directory')}
+          buildingId: GuideBuildingId,
+          floorCode: string,
+          placeId: string,
+        ) => {
+          setHospitalGuideTarget({
+            buildingId,
+            floorCode,
+            placeId,
+          });
+          setView('hospital-directory');
+        }}
       />
     );
   }
 
-  if (view === 'hospital-directory') {
+  if (view === 'hospital-directory' && hospitalCatalog) {
     return (
-      <MobileShell compactHeader>
-        <main className="screen state-screen">
-          <h1>전체 건물·층별 안내</h1>
-          <p>공식 전체 층 정보를 준비하고 있습니다.</p>
-          <button
-            className="primary-button"
-            onClick={() => setView('service-guide')}
-            type="button"
-          >
-            이용 안내로 돌아가기
-          </button>
-        </main>
-      </MobileShell>
+      <BuildingDirectoryScreen
+        catalog={hospitalCatalog}
+        initialTarget={hospitalGuideTarget}
+        onBack={() => setView('service-guide')}
+      />
     );
   }
 

@@ -752,6 +752,83 @@ describe('CaregiverJourneyApp', () => {
       screen.queryByTestId('route-user-marker'),
     ).not.toBeInTheDocument();
   });
+
+  it('네 건물의 지하층과 고층을 탐색한다', async () => {
+    const user = userEvent.setup();
+    const api = createFakeApi({
+      getDemo: vi.fn().mockResolvedValue({
+        ...unlinkedJourney,
+        linked: true,
+        guide: null,
+      }),
+    });
+
+    render(<CaregiverJourneyApp api={api} />);
+    await user.click(
+      await screen.findByRole('button', { name: '이용 안내' }),
+    );
+    await user.click(
+      await screen.findByRole('button', {
+        name: '전체 건물·층별 안내',
+      }),
+    );
+
+    expect(screen.getByRole('tab', { name: '본관' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+    expect(screen.getByRole('tab', { name: '별관' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: '암병원' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('tab', { name: '양성자치료센터' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: '지하 3층' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: '20층' }),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole('tab', { name: '암병원' }));
+    await user.click(screen.getByRole('button', { name: '11층' }));
+
+    expect(
+      screen.getByRole('heading', { name: '암병원 11층' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', {
+        name: '삼성서울병원 공식 층별 안내 원문',
+      }),
+    ).toHaveAttribute(
+      'href',
+      'https://www.samsunghospital.com/_newhome/info/guide/cancer/11F.html',
+    );
+  });
+
+  it('서류 발급 방문 장소에서 해당 건물과 층으로 바로 연결한다', async () => {
+    const user = userEvent.setup();
+    const api = createFakeApi({
+      getDemo: vi.fn().mockResolvedValue({
+        ...unlinkedJourney,
+        linked: true,
+        guide: null,
+      }),
+    });
+
+    render(<CaregiverJourneyApp api={api} />);
+    await user.click(
+      await screen.findByRole('button', { name: '이용 안내' }),
+    );
+    await user.click(screen.getByRole('button', { name: '서류 발급' }));
+    await user.click(
+      await screen.findByRole('button', { name: '이 장소로 안내' }),
+    );
+
+    expect(
+      screen.getByRole('heading', { name: '본관 1층' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('25. 원무수납/접수')).toBeInTheDocument();
+  });
 });
 
 export { createFakeApi, unlinkedJourney };
