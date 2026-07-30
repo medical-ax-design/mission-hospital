@@ -61,12 +61,11 @@ npm run build
 
 ## 문서
 
+- [문서 안내](./docs/README.md)
 - [제품 개요](./docs/PRODUCT_BRIEF.md)
 - [제품 요구사항](./docs/PRD.md)
 - [UX 및 화면 명세](./docs/UX_SPEC.md)
-- [보호자 여정 설계](./docs/superpowers/specs/2026-07-30-caregiver-journey-prototype-design.md)
-- [구현 계획](./docs/superpowers/plans/2026-07-30-caregiver-journey-prototype.md)
-- [전체 문서 안내](./docs/README.md)
+- [현재 기술 개요](./docs/TECHNICAL_OVERVIEW.md)
 
 ## 안전 경계
 
