@@ -1,57 +1,37 @@
-import type {
-  CaregiverJourney,
-  TreatmentStage,
-} from '@ready-on/contracts/caregiver-journey';
+import type { CaregiverJourney } from '@ready-on/contracts/caregiver-journey';
+import {
+  getTreatmentStageIndex,
+  TREATMENT_STAGE_ORDER,
+  TREATMENT_STAGE_PRESENTATION,
+} from '../treatment-stage-presentation';
+import { useTreatmentDemoStage } from '../use-treatment-demo-stage';
 import { MobileShell } from './mobile-shell';
-
-const stages: Array<{
-  stage: TreatmentStage;
-  label: string;
-  description: string;
-}> = [
-  {
-    stage: 'PREPARING',
-    label: '수술 준비',
-    description: '수술 전 준비와 확인을 진행합니다.',
-  },
-  {
-    stage: 'IN_OPERATING_ROOM',
-    label: '수술실 입실',
-    description: '환자가 수술실에 입실한 상태입니다.',
-  },
-  {
-    stage: 'IN_PROGRESS',
-    label: '수술 진행',
-    description: '수술이 시작된 상태입니다.',
-  },
-  {
-    stage: 'RECOVERY',
-    label: '회복실',
-    description: '회복실에서 상태를 확인합니다.',
-  },
-  {
-    stage: 'COMPLETED',
-    label: '병실 이동',
-    description: '의료진 확인 후 병실로 이동합니다.',
-  },
-];
+import { TreatmentDemoControls } from './treatment-demo-controls';
+import { TreatmentStageMedia } from './treatment-stage-media';
 
 interface TreatmentProgressScreenProps {
   journey: CaregiverJourney;
+  demoMode: boolean;
   onHome: () => void;
 }
 
 export function TreatmentProgressScreen({
   journey,
+  demoMode,
   onHome,
 }: TreatmentProgressScreenProps) {
-  const currentIndex = stages.findIndex(
-    ({ stage }) => stage === journey.treatment.stage,
-  );
+  const demo = useTreatmentDemoStage(journey.treatment.stage, demoMode);
+  const activeStage = demo.stage;
+  const activeContent = TREATMENT_STAGE_PRESENTATION[activeStage];
+  const currentIndex = getTreatmentStageIndex(activeStage);
 
   return (
     <MobileShell compactHeader>
-      <main className="screen">
+      <main
+        className={
+          demoMode ? 'screen screen--with-treatment-demo' : 'screen'
+        }
+      >
         <button className="back-button" onClick={onHome} type="button">
           <span aria-hidden="true">←</span>
           홈으로
@@ -74,13 +54,17 @@ export function TreatmentProgressScreen({
             </span>
           </div>
           <div>
-            <h2 id="verified-status-title">병원 확인 상태</h2>
+            <h2 id="verified-status-title">
+              {demoMode ? '발표용 병원 상태 시연' : '병원 확인 상태'}
+            </h2>
             <p className="verified-status__value">
-              {journey.treatment.label}
+              {activeContent.statusLabel}
             </p>
             <small>상태 변경 시 이 화면도 함께 업데이트됩니다.</small>
           </div>
         </section>
+
+        <TreatmentStageMedia key={activeStage} content={activeContent} />
 
         <section className="process-section" aria-labelledby="process-title">
           <div className="section-heading section-heading--stacked">
@@ -88,7 +72,8 @@ export function TreatmentProgressScreen({
             <h2 id="process-title">일반적인 수술 과정</h2>
           </div>
           <ol className="process-timeline">
-            {stages.map((item, index) => {
+            {TREATMENT_STAGE_ORDER.map((stage, index) => {
+              const item = TREATMENT_STAGE_PRESENTATION[stage];
               const active = index === currentIndex;
               const completed = index < currentIndex;
 
@@ -101,15 +86,15 @@ export function TreatmentProgressScreen({
                         ? 'process-step process-step--completed'
                         : 'process-step'
                   }
-                  key={item.stage}
+                  key={stage}
                   aria-current={active ? 'step' : undefined}
                 >
                   <span className="process-step__marker">
                     {completed ? '✓' : index + 1}
                   </span>
                   <div>
-                    <strong>{item.label}</strong>
-                    <p>{item.description}</p>
+                    <strong>{item.timelineLabel}</strong>
+                    <p>{item.timelineDescription}</p>
                     {active && <em>현재 확인 단계</em>}
                   </div>
                 </li>
@@ -126,6 +111,18 @@ export function TreatmentProgressScreen({
           </p>
         </aside>
       </main>
+      {demoMode && (
+        <TreatmentDemoControls
+          stageIndex={demo.stageIndex}
+          stageCount={demo.stageCount}
+          isAutoPlaying={demo.isAutoPlaying}
+          canGoPrevious={demo.stageIndex > 0}
+          canGoNext={demo.stageIndex < demo.stageCount - 1}
+          onPrevious={demo.goPrevious}
+          onNext={demo.goNext}
+          onToggleAutoPlay={demo.toggleAutoPlay}
+        />
+      )}
     </MobileShell>
   );
 }

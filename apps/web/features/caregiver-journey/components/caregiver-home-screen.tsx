@@ -20,7 +20,6 @@ interface CaregiverHomeScreenProps {
   onOpenRestrictions: () => void;
   onSelectTab: (tab: RootTab) => void;
   onSelectScenario: (scenarioId: DemoScenarioId) => void;
-  onAdvance: () => void;
 }
 
 export function CaregiverHomeScreen({
@@ -33,7 +32,6 @@ export function CaregiverHomeScreen({
   onOpenRestrictions,
   onSelectTab,
   onSelectScenario,
-  onAdvance,
 }: CaregiverHomeScreenProps) {
   const taskCompleted = journey.task?.status === 'COMPLETED';
 
@@ -160,15 +158,6 @@ export function CaregiverHomeScreen({
               <strong>발표자 도구</strong>
               <small>실제 사용자에게는 보이지 않습니다</small>
             </div>
-            {journey.scenarioId === 'gastric-surgery' && (
-              <button
-                disabled={busy}
-                onClick={onAdvance}
-                type="button"
-              >
-                {busy ? '전환 중' : '다음 단계로 전환'}
-              </button>
-            )}
             <button
               disabled={busy}
               onClick={() => onSelectScenario('gastric-surgery')}
