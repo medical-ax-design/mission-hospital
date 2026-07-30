@@ -1,6 +1,8 @@
 .worktrees/
 node_modules/
 dist/
+.next/
+*.tsbuildinfo
 .DS_Store
 tmp/
 .env
