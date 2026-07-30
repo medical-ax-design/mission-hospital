@@ -21,6 +21,7 @@ import { CaregiverTaskScreen } from './components/caregiver-task-screen';
 import type { RootTab } from './components/bottom-navigation';
 import { MobileShell } from './components/mobile-shell';
 import { PatientLinkScreen } from './components/patient-link-screen';
+import { ProfileScreen } from './components/profile-screen';
 import { RestrictionGuidanceScreen } from './components/restriction-guidance-screen';
 import { SavedQuestionsScreen } from './components/saved-questions-screen';
 import { ScheduleScreen } from './components/schedule-screen';
@@ -40,6 +41,7 @@ type JourneyView =
   | 'task'
   | 'schedule'
   | 'service-guide'
+  | 'profile'
   | 'hospital-purpose'
   | 'hospital-directory'
   | 'safe-navigation'
@@ -230,6 +232,15 @@ export function CaregiverJourneyApp({
           setView('hospital-directory');
         }}
         onOpenRestrictions={() => setView('restrictions')}
+        onSelectTab={(tab: RootTab) => setView(tab)}
+      />
+    );
+  }
+
+  if (view === 'profile') {
+    return (
+      <ProfileScreen
+        journey={journey}
         onSelectTab={(tab: RootTab) => setView(tab)}
       />
     );
