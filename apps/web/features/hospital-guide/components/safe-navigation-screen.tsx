@@ -4,9 +4,14 @@ import type {
   RouteAvailability,
   VerifiedRoute,
 } from '@ready-on/contracts/hospital-guide';
-import { useState } from 'react';
+import { useState, type MouseEvent } from 'react';
 import { MobileShell } from '../../caregiver-journey/components/mobile-shell';
-import { validateVerifiedRoute } from '../hospital-guide-model';
+import {
+  getPrototypeDestinationPoint,
+  getPrototypeRoute,
+  validateVerifiedRoute,
+  type PrototypeRouteResult,
+} from '../hospital-guide-model';
 
 interface SafeNavigationScreenProps {
   buildingName: string;
@@ -53,17 +58,65 @@ function MapOnlyNavigation({
   onBack: () => void;
   sourceUrl: string;
 }) {
+  const [prototypeRoute, setPrototypeRoute] =
+    useState<PrototypeRouteResult | null>(null);
+  const [selectionError, setSelectionError] = useState<string | null>(
+    null,
+  );
+  const prototypeDestinationPoint = floor
+    ? getPrototypeDestinationPoint(floor.code, destination.id)
+    : null;
+  const supportsPrototypeRoute = prototypeDestinationPoint !== null;
+
+  const selectCurrentPosition = (
+    event: MouseEvent<HTMLButtonElement>,
+  ) => {
+    if (!floor) return;
+    const bounds = event.currentTarget.getBoundingClientRect();
+    if (!bounds.width || !bounds.height) return;
+
+    const selectedPoint: [number, number] = [
+      ((event.clientX - bounds.left) / bounds.width) * 100,
+      ((event.clientY - bounds.top) / bounds.height) * 100,
+    ];
+    const nextRoute = getPrototypeRoute(
+      floor.code,
+      destination.id,
+      selectedPoint,
+    );
+
+    if (!nextRoute) {
+      setPrototypeRoute(null);
+      setSelectionError(
+        '복도 또는 출입구 위에서 현재 위치를 다시 선택해 주세요.',
+      );
+      return;
+    }
+
+    setPrototypeRoute(nextRoute);
+    setSelectionError(null);
+  };
+
   return (
     <MobileShell compactHeader>
       <main className="screen safe-navigation">
         <button className="text-back" onClick={onBack} type="button">
           ← 층별 안내
         </button>
-        <p className="eyebrow">경로 검증 전 위치 안내</p>
-        <h1 className="page-title">공식 지도에서 위치를 확인하세요</h1>
+        <p className="eyebrow">
+          {supportsPrototypeRoute
+            ? '공식 지도 기반 길찾기 시연'
+            : '경로 검증 전 위치 안내'}
+        </p>
+        <h1 className="page-title">
+          {supportsPrototypeRoute
+            ? '지도에서 현재 위치를 선택하세요'
+            : '공식 지도에서 위치를 확인하세요'}
+        </h1>
         <p className="lead">
-          병원이 확인한 복도 경로가 아직 등록되지 않아 임의의 선을
-          표시하지 않습니다.
+          {supportsPrototypeRoute
+            ? '현재 서 있는 복도나 출입구를 누르면 목적지까지 이동선을 표시합니다.'
+            : '병원이 확인한 복도 경로가 아직 등록되지 않아 임의의 선을 표시하지 않습니다.'}
         </p>
 
         <section className="navigation-destination">
@@ -77,13 +130,77 @@ function MapOnlyNavigation({
         </section>
 
         {floor?.mapImageUrl ? (
-          <figure className="floor-map safe-navigation__map">
-            <img
-              alt={`${buildingName} ${floor.label} 공식 안내도`}
-              src={floor.mapImageUrl}
-            />
+          <figure
+            className={`floor-map safe-navigation__map ${
+              supportsPrototypeRoute
+                ? 'prototype-floor-route'
+                : ''
+            }`}
+          >
+            {supportsPrototypeRoute ? (
+              <button
+                aria-label="지도에서 현재 위치 선택"
+                className="prototype-floor-route__canvas"
+                onClick={selectCurrentPosition}
+                type="button"
+              >
+                <img
+                  alt={`${buildingName} ${floor.label} 공식 안내도`}
+                  draggable="false"
+                  src={floor.mapImageUrl}
+                />
+                <svg
+                  aria-label="현재 위치에서 목적지까지의 시연 경로"
+                  className="verified-floor-route__overlay"
+                  preserveAspectRatio="none"
+                  role="img"
+                  viewBox="0 0 100 100"
+                >
+                  {prototypeRoute && (
+                    <>
+                      <polyline
+                        data-testid="prototype-route-line"
+                        fill="none"
+                        points={pointsToPolyline(prototypeRoute.points)}
+                      />
+                      <g
+                        className="prototype-route-user"
+                        data-testid="prototype-route-user-marker"
+                        transform={`translate(${prototypeRoute.currentPoint[0]} ${prototypeRoute.currentPoint[1]})`}
+                      >
+                        <circle className="prototype-route-user__pulse" r="4.4" />
+                        <circle r="2.4" />
+                      </g>
+                    </>
+                  )}
+                  <g
+                    className="prototype-route-destination"
+                    data-testid="prototype-route-destination"
+                    transform={`translate(${
+                      prototypeRoute?.destinationPoint[0] ??
+                      prototypeDestinationPoint?.[0]
+                    } ${
+                      prototypeRoute?.destinationPoint[1] ??
+                      prototypeDestinationPoint?.[1]
+                    })`}
+                  >
+                    <circle r="3.5" />
+                    <path d="M -1.1 -0.4 L -0.1 0.7 L 1.5 -1" />
+                  </g>
+                </svg>
+              </button>
+            ) : (
+              <img
+                alt={`${buildingName} ${floor.label} 공식 안내도`}
+                src={floor.mapImageUrl}
+              />
+            )}
             <figcaption>
-              지도와 현장 표지판을 함께 확인해 주세요.
+              {prototypeRoute
+                ? '선택한 위치를 가장 가까운 복도에 맞췄습니다. 붉은 선을 따라 이동하세요.'
+                : supportsPrototypeRoute
+                  ? '목적지는 표시되어 있습니다. 현재 서 있는 복도나 출입구를 눌러 주세요.'
+                  : '지도와 현장 표지판을 함께 확인해 주세요.'}
             </figcaption>
           </figure>
         ) : (
@@ -91,6 +208,22 @@ function MapOnlyNavigation({
             앱에서 공식 안내도 이미지를 불러올 수 없습니다. 가까운
             안내 데스크에 문의해 주세요.
           </div>
+        )}
+
+        {selectionError && (
+          <p className="route-selection-error" role="alert">
+            {selectionError}
+          </p>
+        )}
+
+        {supportsPrototypeRoute && (
+          <aside className="prototype-route-notice">
+            <strong>발표용 시연 경로입니다</strong>
+            <p>
+              공식 층별 안내도 위에 구현한 경로이며, 실제 서비스 전
+              병원의 복도·출입구·공사 정보를 현장에서 검증해야 합니다.
+            </p>
+          </aside>
         )}
 
         <a
@@ -169,6 +302,7 @@ function VerifiedNavigation({
                     <svg
                       aria-label={`${floor.label}에서 이동할 검증 경로`}
                       className="verified-floor-route__overlay"
+                      preserveAspectRatio="none"
                       role="img"
                       viewBox="0 0 100 100"
                     >

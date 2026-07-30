@@ -3,6 +3,7 @@ import type {
   GuideFloor,
 } from '@ready-on/contracts/hospital-guide';
 import { useState } from 'react';
+import { getPrototypeDestinationPoint } from '../hospital-guide-model';
 
 interface FloorDetailScreenProps {
   building: GuideBuilding;
@@ -30,6 +31,10 @@ export function FloorDetailScreen({
   const selectedPlace = floor.places.find(
     ({ id }) => id === selectedPlaceId,
   );
+  const supportsPrototypeRoute = selectedPlace
+    ? getPrototypeDestinationPoint(floor.code, selectedPlace.id) !==
+      null
+    : false;
 
   return (
     <section className="floor-detail" aria-labelledby="floor-detail-title">
@@ -103,7 +108,9 @@ export function FloorDetailScreen({
           onClick={() => onNavigate(selectedPlace.id)}
           type="button"
         >
-          공식 지도에서 위치 확인
+          {supportsPrototypeRoute
+            ? '현재 위치 선택하고 길찾기'
+            : '공식 지도에서 위치 확인'}
         </button>
       )}
 

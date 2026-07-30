@@ -53,7 +53,7 @@ describe('HospitalGuideService', () => {
     for (const building of service.getCatalog().buildings) {
       for (const floor of building.floors) {
         expect(floor.sourceUrl).toContain('samsunghospital.com');
-        expect(floor.sourceCheckedAt).toBe('2026-07-30');
+        expect(floor.sourceCheckedAt).toBe('2026-07-31');
         expect(floor.publicationStatus).toBe('PUBLIC');
       }
     }

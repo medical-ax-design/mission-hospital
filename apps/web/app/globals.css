@@ -808,6 +808,94 @@ button:focus-visible {
   margin-top: 20px;
 }
 
+.prototype-floor-route__canvas {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: crosshair;
+}
+
+.prototype-floor-route__canvas:focus-visible {
+  outline: 4px solid #246bfe;
+  outline-offset: -4px;
+}
+
+.prototype-floor-route__canvas img {
+  pointer-events: none;
+  user-select: none;
+}
+
+.prototype-floor-route .verified-floor-route__overlay {
+  pointer-events: none;
+}
+
+.prototype-floor-route .verified-floor-route__overlay polyline {
+  stroke: #e62525;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0.5px 0 #fff);
+}
+
+.prototype-route-user > circle:not(.prototype-route-user__pulse) {
+  fill: #e62525;
+  stroke: #fff;
+  stroke-width: 1;
+}
+
+.prototype-route-user__pulse {
+  fill: rgb(230 37 37 / 18%);
+  stroke: #e62525;
+  stroke-width: 0.7;
+}
+
+.prototype-route-destination circle {
+  fill: var(--green);
+  stroke: #fff;
+  stroke-width: 1;
+}
+
+.prototype-route-destination path {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 0.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.route-selection-error {
+  margin: -6px 0 18px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  color: #8d2020;
+  background: #fff0f0;
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.55;
+}
+
+.prototype-route-notice {
+  margin: 0 0 18px;
+  padding: 15px 16px;
+  border: 1px solid #f0dca4;
+  border-radius: 15px;
+  color: #654d19;
+  background: #fff9e8;
+}
+
+.prototype-route-notice strong {
+  font-size: 13px;
+}
+
+.prototype-route-notice p {
+  margin: 5px 0 0;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
 .verified-walk h2,
 .verified-transition h2 {
   margin: 18px 0 14px;
