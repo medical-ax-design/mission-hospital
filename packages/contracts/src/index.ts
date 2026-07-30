@@ -10,11 +10,17 @@ export {
   CaregiverJourneySchema,
   CaregiverTaskStatusSchema,
   DemoScenarioIdSchema,
+  HospitalBuildingSchema,
+  PatientScheduleSchema,
+  PatientScheduleTypeSchema,
   TreatmentStageSchema,
   type CaregiverJourney,
   type CaregiverJourneyResponse,
   type CaregiverTaskStatus,
   type DemoScenarioId,
+  type HospitalBuilding,
+  type PatientSchedule,
+  type PatientScheduleType,
   type TreatmentStage,
 } from './caregiver-journey.js';
 

@@ -19,6 +19,31 @@ export const CaregiverTaskStatusSchema = z.enum([
   'COMPLETED',
 ]);
 
+export const HospitalBuildingSchema = z.enum([
+  'MAIN',
+  'ANNEX',
+  'CANCER',
+]);
+
+export const PatientScheduleTypeSchema = z.enum([
+  'APPOINTMENT',
+  'EXAM',
+  'ADMISSION',
+  'SURGERY',
+  'ADMIN',
+]);
+
+export const PatientScheduleSchema = z.object({
+  id: z.string().min(1),
+  type: PatientScheduleTypeSchema,
+  title: z.string().trim().min(1),
+  startsAt: z.iso.datetime(),
+  building: HospitalBuildingSchema,
+  floor: z.string().trim().min(1),
+  location: z.string().trim().min(1),
+  preparation: z.array(z.string().trim().min(1)).min(1),
+});
+
 const PatientSchema = z.object({
   id: z.string().min(1),
   displayName: z.string().trim().min(1),
@@ -56,19 +81,6 @@ const PurposeGuideSchema = z.object({
   fallback: z.string().trim().min(1),
 });
 
-const ClinicalSummarySchema = z.discriminatedUnion('status', [
-  z.object({
-    status: z.literal('UNAVAILABLE'),
-  }),
-  z.object({
-    status: z.literal('CONFIRMED'),
-    confirmedAt: z.iso.datetime(),
-    currentStatus: z.string().trim().min(1),
-    items: z.array(z.string().trim().min(1)).min(1),
-    nextSchedule: z.string().trim().min(1),
-  }),
-]);
-
 export const CaregiverJourneySchema = z.object({
   id: z.string().min(1),
   scenarioId: DemoScenarioIdSchema,
@@ -78,7 +90,7 @@ export const CaregiverJourneySchema = z.object({
   treatment: TreatmentProgressSchema,
   task: CaregiverTaskSchema.nullable(),
   guide: PurposeGuideSchema.nullable(),
-  summary: ClinicalSummarySchema,
+  schedules: z.array(PatientScheduleSchema).min(1),
 });
 
 export const CaregiverJourneyResponseSchema = z.object({
@@ -88,6 +100,11 @@ export const CaregiverJourneyResponseSchema = z.object({
 export type TreatmentStage = z.infer<typeof TreatmentStageSchema>;
 export type DemoScenarioId = z.infer<typeof DemoScenarioIdSchema>;
 export type CaregiverTaskStatus = z.infer<typeof CaregiverTaskStatusSchema>;
+export type HospitalBuilding = z.infer<typeof HospitalBuildingSchema>;
+export type PatientScheduleType = z.infer<
+  typeof PatientScheduleTypeSchema
+>;
+export type PatientSchedule = z.infer<typeof PatientScheduleSchema>;
 export type CaregiverJourney = z.infer<typeof CaregiverJourneySchema>;
 export type CaregiverJourneyResponse = z.infer<
   typeof CaregiverJourneyResponseSchema

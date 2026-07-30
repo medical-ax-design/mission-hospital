@@ -40,11 +40,26 @@ const validJourney = {
   summary: {
     status: 'UNAVAILABLE',
   },
+  schedules: [
+    {
+      id: 'schedule-surgery',
+      type: 'SURGERY',
+      title: '위암 수술',
+      startsAt: '2026-07-30T00:00:00.000Z',
+      building: 'MAIN',
+      floor: '2F',
+      location: '수술센터',
+      preparation: ['보호자 대기 장소를 확인해 주세요.'],
+    },
+  ],
 } as const;
 
 describe('CaregiverJourneySchema', () => {
-  it('가상의 보호자 여정을 허용한다', () => {
-    expect(CaregiverJourneySchema.parse(validJourney)).toBeDefined();
+  it('진료 요약 없이 환자 일정을 포함한 여정을 허용한다', () => {
+    const journey = CaregiverJourneySchema.parse(validJourney);
+
+    expect(journey).not.toHaveProperty('summary');
+    expect(journey.schedules[0]?.type).toBe('SURGERY');
   });
 
   it('현재 업무, 이동 안내, 확인 시각이 없는 여정을 허용한다', () => {
@@ -63,17 +78,20 @@ describe('CaregiverJourneySchema', () => {
     expect(journey.guide).toBeNull();
   });
 
-  it('의료진 확인 요약에 내용이 없으면 거부한다', () => {
+  it.each([
+    ['등록되지 않은 건물', { building: 'UNKNOWN' }],
+    ['빈 준비사항', { preparation: [] }],
+    ['잘못된 시작 시각', { startsAt: '2026-07-30 09:00' }],
+  ])('%s을 가진 일정은 거부한다', (_, invalidSchedule) => {
     expect(() =>
       CaregiverJourneySchema.parse({
         ...validJourney,
-        summary: {
-          status: 'CONFIRMED',
-          confirmedAt: '2026-07-30T05:10:00.000Z',
-          currentStatus: '수술 종료',
-          items: [],
-          nextSchedule: '회복실 확인 후 병실 이동 예정',
-        },
+        schedules: [
+          {
+            ...validJourney.schedules[0],
+            ...invalidSchedule,
+          },
+        ],
       }),
     ).toThrow();
   });
