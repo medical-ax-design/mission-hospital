@@ -76,4 +76,11 @@ describe('CaregiverJourneyService', () => {
 
     expect(completed.treatment.stage).toBe('COMPLETED');
   });
+
+  it('가상 여정에 확인되지 않은 키오스크 이동 안내를 넣지 않는다', async () => {
+    const journey = await service.getDemo();
+
+    expect(journey.guide).toBeNull();
+    expect(JSON.stringify(journey)).not.toContain('3번 키오스크');
+  });
 });

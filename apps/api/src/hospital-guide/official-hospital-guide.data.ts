@@ -162,6 +162,21 @@ const placesByFloor: Record<string, GuidePlace[]> = {
   ],
 };
 
+const certificateSource =
+  'https://samsunghospital.com/home/healthChart/issueService/InfoIssueCertiList.do';
+const caregiverRequiredItems = [
+  '환자 신분증',
+  '신청자 신분증',
+  '가족관계증명서',
+  '환자가 자필 서명한 동의서',
+];
+const onsiteSteps = [
+  '필요한 서류가 홈페이지·모바일 발급 대상인지 먼저 확인하세요.',
+  '최초 발급과 재발급 중 어느 경우인지 확인하세요.',
+  '보호자 발급 구비서류를 준비하세요.',
+  '공식 원무 수납 장소에서 발급 가능 여부를 확인하세요.',
+];
+
 function floorLevel(code: string) {
   const value = Number.parseInt(code, 10);
   return code.startsWith('B') ? -Number.parseInt(code.slice(1), 10) : value;
@@ -210,5 +225,81 @@ export const officialHospitalGuideCatalog =
         };
       }),
     })),
-    purposes: [],
+    purposes: [
+      {
+        id: 'document-issuance',
+        category: 'DOCUMENT',
+        name: '서류 발급',
+        searchTerms: [
+          '제증명',
+          '진료비 서류',
+          '진단서',
+          '수술확인서',
+          '입원확인서',
+          '통원확인서',
+          '의무기록',
+        ],
+        options: [
+          {
+            id: 'document-online',
+            channel: 'ONLINE',
+            placeId: null,
+            title: '홈페이지에서 발급',
+            requiredItems: ['환자 본인인증 수단'],
+            orderedSteps: [
+              '삼성서울병원 제증명 발급 페이지를 여세요.',
+              '환자 본인인증을 진행하세요.',
+              '발급 가능한 서류와 최초·재발급 조건을 확인하세요.',
+              '출력 또는 다운로드 가능한 서류를 발급하세요.',
+            ],
+            sourceUrl: certificateSource,
+            sourceStatus: 'OFFICIAL_PUBLIC',
+          },
+          {
+            id: 'document-mobile',
+            channel: 'MOBILE',
+            placeId: null,
+            title: '모바일에서 발급',
+            requiredItems: ['환자 본인인증 수단'],
+            orderedSteps: [
+              '삼성서울병원 모바일 서비스에 로그인하세요.',
+              '제증명 발급 가능 목록을 확인하세요.',
+              '다운로드 가능한 서류를 발급하세요.',
+            ],
+            sourceUrl: certificateSource,
+            sourceStatus: 'OFFICIAL_PUBLIC',
+          },
+          {
+            id: 'document-onsite-main',
+            channel: 'ONSITE',
+            placeId: 'main-1f-payment',
+            title: '본관 원무 수납에서 확인',
+            requiredItems: caregiverRequiredItems,
+            orderedSteps: onsiteSteps,
+            sourceUrl: certificateSource,
+            sourceStatus: 'OFFICIAL_PUBLIC',
+          },
+          {
+            id: 'document-onsite-annex',
+            channel: 'ONSITE',
+            placeId: 'annex-1f-payment',
+            title: '별관 원무 수납에서 확인',
+            requiredItems: caregiverRequiredItems,
+            orderedSteps: onsiteSteps,
+            sourceUrl: certificateSource,
+            sourceStatus: 'OFFICIAL_PUBLIC',
+          },
+          {
+            id: 'document-onsite-cancer',
+            channel: 'ONSITE',
+            placeId: 'cancer-1f-payment',
+            title: '암병원 원무 수납에서 확인',
+            requiredItems: caregiverRequiredItems,
+            orderedSteps: onsiteSteps,
+            sourceUrl: certificateSource,
+            sourceStatus: 'OFFICIAL_PUBLIC',
+          },
+        ],
+      },
+    ],
   });

@@ -83,4 +83,38 @@ describe('HospitalGuideService', () => {
 
     expect(service.getCatalog().buildings[0]?.name).toBe('본관');
   });
+
+  it('서류 발급을 공식 온라인·모바일·방문 방법으로 연결한다', () => {
+    const result = service.findPurpose('서류 발급');
+
+    expect(result.purpose.id).toBe('document-issuance');
+    expect(result.purpose.options.map(({ channel }) => channel)).toEqual(
+      expect.arrayContaining(['ONLINE', 'MOBILE', 'ONSITE']),
+    );
+    expect(result.places).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          buildingId: 'MAIN',
+          floorCode: '1F',
+        }),
+      ]),
+    );
+    expect(JSON.stringify(result)).not.toContain('3번 키오스크');
+  });
+
+  it('보호자 방문 발급에 공식 구비서류를 안내한다', () => {
+    const result = service.findPurpose('진료비 서류');
+    const onsite = result.purpose.options.find(
+      ({ channel }) => channel === 'ONSITE',
+    );
+
+    expect(onsite?.requiredItems).toEqual(
+      expect.arrayContaining([
+        '환자 신분증',
+        '신청자 신분증',
+        '가족관계증명서',
+        '환자가 자필 서명한 동의서',
+      ]),
+    );
+  });
 });
