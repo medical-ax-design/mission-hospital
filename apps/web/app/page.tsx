@@ -1,3 +1,5 @@
+import { CaregiverJourneyApp } from '../features/caregiver-journey/caregiver-journey-app';
+
 export default function Page() {
-  return <main>Wait:ON 보호자 안내</main>;
+  return <CaregiverJourneyApp />;
 }

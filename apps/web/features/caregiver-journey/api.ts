@@ -1,7 +1,7 @@
 import {
   CaregiverJourneyResponseSchema,
   type CaregiverJourney,
-} from '@ready-on/contracts';
+} from '@ready-on/contracts/caregiver-journey';
 
 export interface CaregiverJourneyApi {
   getDemo(): Promise<CaregiverJourney>;
