@@ -1,4 +1,5 @@
 import type { CaregiverJourney } from '@ready-on/contracts/caregiver-journey';
+import { formatHospitalSchedule } from '../format-hospital-time';
 import { MobileShell } from './mobile-shell';
 
 interface PatientLinkScreenProps {
@@ -32,7 +33,9 @@ export function PatientLinkScreen({
               <span>{journey.patient.age}세</span>
             </p>
             <p>{journey.patient.procedureName}</p>
-            <p className="muted">오늘 오전 9:00 예정</p>
+            <p className="muted">
+              {formatHospitalSchedule(journey.patient.scheduledAt)}
+            </p>
           </div>
           <span className="relationship-badge">
             {journey.caregiver.relationship}

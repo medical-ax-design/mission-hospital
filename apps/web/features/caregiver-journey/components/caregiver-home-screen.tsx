@@ -1,4 +1,5 @@
 import type { CaregiverJourney } from '@ready-on/contracts/caregiver-journey';
+import { formatHospitalTime } from '../format-hospital-time';
 import { MobileShell } from './mobile-shell';
 
 interface CaregiverHomeScreenProps {
@@ -20,7 +21,7 @@ export function CaregiverHomeScreen({
   onOpenSummary,
   onAdvance,
 }: CaregiverHomeScreenProps) {
-  const taskCompleted = journey.task.status === 'COMPLETED';
+  const taskCompleted = journey.task?.status === 'COMPLETED';
 
   return (
     <MobileShell compactHeader>
@@ -48,7 +49,9 @@ export function CaregiverHomeScreen({
               <i aria-hidden="true" />
               병원 확인
             </span>
-            <span>방금 업데이트</span>
+            <span>
+              병원 확인 {formatHospitalTime(journey.treatment.updatedAt)}
+            </span>
           </div>
           <h1 id="current-status">
             지금은 <strong>{journey.treatment.label}</strong>입니다
@@ -70,30 +73,46 @@ export function CaregiverHomeScreen({
               <p className="eyebrow">지금 할 일</p>
               <h2 id="caregiver-task">보호자 업무</h2>
             </div>
-            <span className={taskCompleted ? 'done-badge' : 'time-badge'}>
-              {taskCompleted
-                ? '완료'
-                : `약 ${journey.task.estimatedMinutes}분`}
-            </span>
-          </div>
-          <button
-            className="action-card"
-            onClick={onOpenTask}
-            type="button"
-          >
-            <span className="action-card__icon" aria-hidden="true">
-              {taskCompleted ? '✓' : '문'}
-            </span>
-            <span className="action-card__copy">
-              <strong>{journey.task.title}</strong>
-              <small>
+            {journey.task && (
+              <span
+                className={taskCompleted ? 'done-badge' : 'time-badge'}
+              >
                 {taskCompleted
-                  ? '업무를 완료했습니다'
-                  : `${journey.guide?.destination ?? '안내 데스크'}에서 처리`}
-              </small>
-            </span>
-            <span aria-hidden="true">›</span>
-          </button>
+                  ? '완료'
+                  : `약 ${journey.task.estimatedMinutes}분`}
+              </span>
+            )}
+          </div>
+          {journey.task ? (
+            <button
+              className="action-card"
+              onClick={onOpenTask}
+              type="button"
+            >
+              <span className="action-card__icon" aria-hidden="true">
+                {taskCompleted ? '✓' : '문'}
+              </span>
+              <span className="action-card__copy">
+                <strong>{journey.task.title}</strong>
+                <small>
+                  {taskCompleted
+                    ? '업무를 완료했습니다'
+                    : `${journey.guide?.destination ?? '안내 데스크 확인 필요'}`}
+                </small>
+              </span>
+              <span aria-hidden="true">›</span>
+            </button>
+          ) : (
+            <div className="action-card">
+              <span className="action-card__icon" aria-hidden="true">
+                ✓
+              </span>
+              <span className="action-card__copy">
+                <strong>현재 처리할 업무가 없습니다</strong>
+                <small>새로운 업무가 확인되면 알려드립니다</small>
+              </span>
+            </div>
+          )}
         </section>
 
         <section className="next-notice" aria-labelledby="next-notice">

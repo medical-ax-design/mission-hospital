@@ -121,6 +121,11 @@ export function CaregiverJourneyApp({
         busy={busy}
         onBack={() => setView('task')}
         onComplete={() => {
+          if (!journey.task) {
+            setView('home');
+            return;
+          }
+
           setBusy(true);
           void api
             .completeTask(journey.task.id)

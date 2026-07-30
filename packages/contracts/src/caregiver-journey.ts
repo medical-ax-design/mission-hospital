@@ -30,7 +30,7 @@ const CaregiverSchema = z.object({
 const TreatmentProgressSchema = z.object({
   stage: TreatmentStageSchema,
   label: z.string().trim().min(1),
-  updatedAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime().nullable(),
   nextNotice: z.string().trim().min(1),
 });
 
@@ -70,8 +70,8 @@ export const CaregiverJourneySchema = z.object({
   patient: PatientSchema,
   caregiver: CaregiverSchema,
   treatment: TreatmentProgressSchema,
-  task: CaregiverTaskSchema,
-  guide: PurposeGuideSchema,
+  task: CaregiverTaskSchema.nullable(),
+  guide: PurposeGuideSchema.nullable(),
   summary: ClinicalSummarySchema,
 });
 

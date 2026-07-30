@@ -46,6 +46,22 @@ describe('CaregiverJourneySchema', () => {
     expect(CaregiverJourneySchema.parse(validJourney)).toBeDefined();
   });
 
+  it('현재 업무, 이동 안내, 확인 시각이 없는 여정을 허용한다', () => {
+    const journey = CaregiverJourneySchema.parse({
+      ...validJourney,
+      treatment: {
+        ...validJourney.treatment,
+        updatedAt: null,
+      },
+      task: null,
+      guide: null,
+    });
+
+    expect(journey.treatment.updatedAt).toBeNull();
+    expect(journey.task).toBeNull();
+    expect(journey.guide).toBeNull();
+  });
+
   it('의료진 확인 요약에 내용이 없으면 거부한다', () => {
     expect(() =>
       CaregiverJourneySchema.parse({

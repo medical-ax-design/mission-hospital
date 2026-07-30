@@ -54,7 +54,7 @@ describe('caregiver journey API', () => {
 
     expect(
       CaregiverJourneyResponseSchema.parse(response.body).journey.task
-        .status,
+        ?.status,
     ).toBe('COMPLETED');
   });
 

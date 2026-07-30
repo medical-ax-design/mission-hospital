@@ -22,7 +22,7 @@ describe('CaregiverJourneyService', () => {
   it('보호자 업무를 완료한다', async () => {
     const result = await service.completeTask('task-admission-docs');
 
-    expect(result.task.status).toBe('COMPLETED');
+    expect(result.task?.status).toBe('COMPLETED');
   });
 
   it('존재하지 않는 보호자 업무는 거부한다', async () => {

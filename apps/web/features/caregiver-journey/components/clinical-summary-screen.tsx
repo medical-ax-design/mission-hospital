@@ -1,5 +1,6 @@
 import type { CaregiverJourney } from '@ready-on/contracts/caregiver-journey';
 import { useState } from 'react';
+import { formatHospitalTime } from '../format-hospital-time';
 import { MobileShell } from './mobile-shell';
 
 interface ClinicalSummaryScreenProps {
@@ -80,7 +81,8 @@ export function ClinicalSummaryScreen({
         </section>
 
         <p className="confirmed-note">
-          의료진 확인 시각 · 오후 2:10 · 발표용 가상 정보
+          의료진 확인 시각 · {formatHospitalTime(summary.confirmedAt)} ·
+          발표용 가상 정보
         </p>
 
         <button

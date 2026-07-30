@@ -39,7 +39,7 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:3001 npm run dev --workspace @ready-on
 
 - 일반 화면: `http://localhost:3000`
 - 발표자 도구 포함: `http://localhost:3000/?demo=1`
-- API 상태: `http://localhost:3001/health`
+- API 상태: `http://localhost:3001/health/ready`
 
 메모리 저장소를 사용하므로 API 프로세스를 재시작하면 가상 여정은 초기화됩니다.
 

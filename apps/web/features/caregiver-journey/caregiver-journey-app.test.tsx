@@ -65,6 +65,42 @@ function createFakeApi(
 }
 
 describe('CaregiverJourneyApp', () => {
+  it('예약 및 병원 확인 시각을 API 값으로 표시한다', async () => {
+    const scheduledJourney: CaregiverJourney = {
+      ...unlinkedJourney,
+      patient: {
+        ...unlinkedJourney.patient,
+        scheduledAt: '2026-07-31T02:20:00.000Z',
+      },
+      treatment: {
+        ...unlinkedJourney.treatment,
+        updatedAt: '2026-07-30T01:25:00.000Z',
+      },
+    };
+    const api = createFakeApi({
+      getDemo: vi.fn().mockResolvedValue(scheduledJourney),
+      linkDemo: vi.fn().mockResolvedValue({
+        ...scheduledJourney,
+        linked: true,
+      }),
+    });
+    const user = userEvent.setup();
+
+    render(<CaregiverJourneyApp api={api} />);
+
+    expect(
+      await screen.findByText('7월 31일 오전 11:20 예정'),
+    ).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole('button', { name: '보호자로 연결하기' }),
+    );
+
+    expect(
+      await screen.findByText('병원 확인 오전 10:25'),
+    ).toBeInTheDocument();
+  });
+
   it('연결 전 환자를 선택하고 보호자로 연결한다', async () => {
     const user = userEvent.setup();
     const api = createFakeApi();
@@ -104,6 +140,54 @@ describe('CaregiverJourneyApp', () => {
     expect(screen.getByText('다음 안내')).toBeInTheDocument();
   });
 
+  it('현재 처리할 보호자 업무가 없으면 빈 상태를 안내한다', async () => {
+    const api = createFakeApi({
+      getDemo: vi.fn().mockResolvedValue({
+        ...unlinkedJourney,
+        linked: true,
+        task: null,
+      }),
+    });
+
+    render(<CaregiverJourneyApp api={api} />);
+
+    expect(
+      await screen.findByText('현재 처리할 업무가 없습니다'),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /입원 서류 발급/ }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('이동 안내가 없으면 경로를 만들지 않고 안내 데스크를 안내한다', async () => {
+    const user = userEvent.setup();
+    const api = createFakeApi({
+      getDemo: vi.fn().mockResolvedValue({
+        ...unlinkedJourney,
+        linked: true,
+        guide: null,
+      }),
+    });
+
+    render(<CaregiverJourneyApp api={api} />);
+
+    await user.click(
+      await screen.findByRole('button', { name: /입원 서류 발급/ }),
+    );
+    await user.click(
+      screen.getByRole('button', { name: '경로 안내 시작' }),
+    );
+
+    expect(
+      screen.getByRole('heading', {
+        name: '등록된 이동 안내가 없습니다.',
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('가까운 안내 데스크에 문의해 주세요.'),
+    ).toBeInTheDocument();
+  });
+
   it('병원이 확인한 상태와 일반 과정을 구분해 설명한다', async () => {
     const user = userEvent.setup();
     const api = createFakeApi({
@@ -139,7 +223,7 @@ describe('CaregiverJourneyApp', () => {
       ...unlinkedJourney,
       linked: true,
       task: {
-        ...unlinkedJourney.task,
+        ...unlinkedJourney.task!,
         status: 'COMPLETED',
       },
     };
@@ -270,7 +354,7 @@ describe('CaregiverJourneyApp', () => {
       },
       summary: {
         status: 'CONFIRMED',
-        confirmedAt: '2026-07-30T05:10:00.000Z',
+        confirmedAt: '2026-07-30T06:35:00.000Z',
         currentStatus: '수술 종료 · 회복실에서 상태 확인 중',
         items: [
           '예정된 수술이 종료되었습니다.',
@@ -300,6 +384,11 @@ describe('CaregiverJourneyApp', () => {
     ).toBeInTheDocument();
     expect(
       screen.getByText('회복실 확인 후 병실 이동 예정'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        '의료진 확인 시각 · 오후 3:35 · 발표용 가상 정보',
+      ),
     ).toBeInTheDocument();
 
     await user.click(

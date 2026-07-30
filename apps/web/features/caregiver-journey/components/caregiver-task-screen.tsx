@@ -12,6 +12,24 @@ export function CaregiverTaskScreen({
   onHome,
   onStartGuide,
 }: CaregiverTaskScreenProps) {
+  if (!journey.task) {
+    return (
+      <MobileShell compactHeader>
+        <main className="screen state-screen">
+          <h1>현재 처리할 업무가 없습니다</h1>
+          <p>새로운 업무가 확인되면 알려드립니다.</p>
+          <button
+            className="primary-button"
+            onClick={onHome}
+            type="button"
+          >
+            홈으로
+          </button>
+        </main>
+      </MobileShell>
+    );
+  }
+
   const guide = journey.guide;
 
   return (

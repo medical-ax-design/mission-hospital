@@ -79,7 +79,7 @@ export class CaregiverJourneyService {
   async completeTask(taskId: string) {
     const journey = await this.repository.getDemo();
 
-    if (journey.task.id !== taskId) {
+    if (!journey.task || journey.task.id !== taskId) {
       throw new NotFoundException('보호자 업무를 찾을 수 없습니다.');
     }
 
