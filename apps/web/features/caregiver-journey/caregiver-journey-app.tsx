@@ -8,6 +8,7 @@ import {
 } from './api';
 import { CaregiverHomeScreen } from './components/caregiver-home-screen';
 import { CaregiverTaskScreen } from './components/caregiver-task-screen';
+import { ClinicalSummaryScreen } from './components/clinical-summary-screen';
 import { MobileShell } from './components/mobile-shell';
 import { PatientLinkScreen } from './components/patient-link-screen';
 import { PurposeGuideScreen } from './components/purpose-guide-screen';
@@ -24,6 +25,7 @@ const defaultApi = createCaregiverJourneyApi();
 
 export function CaregiverJourneyApp({
   api = defaultApi,
+  demoMode = false,
 }: CaregiverJourneyAppProps) {
   const [journey, setJourney] = useState<CaregiverJourney | null>(null);
   const [view, setView] = useState<JourneyView>('home');
@@ -133,11 +135,31 @@ export function CaregiverJourneyApp({
     );
   }
 
+  if (view === 'summary') {
+    return (
+      <ClinicalSummaryScreen
+        journey={journey}
+        onHome={() => setView('home')}
+      />
+    );
+  }
+
   return (
     <CaregiverHomeScreen
       journey={journey}
+      busy={busy}
+      demoMode={demoMode}
       onOpenProgress={() => setView('progress')}
       onOpenTask={() => setView('task')}
+      onOpenSummary={() => setView('summary')}
+      onAdvance={() => {
+        setBusy(true);
+        void api
+          .advanceDemo()
+          .then(setJourney)
+          .catch(() => setError(true))
+          .finally(() => setBusy(false));
+      }}
     />
   );
 }

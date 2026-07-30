@@ -3,14 +3,22 @@ import { MobileShell } from './mobile-shell';
 
 interface CaregiverHomeScreenProps {
   journey: CaregiverJourney;
+  busy: boolean;
+  demoMode: boolean;
   onOpenProgress: () => void;
   onOpenTask: () => void;
+  onOpenSummary: () => void;
+  onAdvance: () => void;
 }
 
 export function CaregiverHomeScreen({
   journey,
+  busy,
+  demoMode,
   onOpenProgress,
   onOpenTask,
+  onOpenSummary,
+  onAdvance,
 }: CaregiverHomeScreenProps) {
   const taskCompleted = journey.task.status === 'COMPLETED';
 
@@ -97,6 +105,37 @@ export function CaregiverHomeScreen({
             <p>{journey.treatment.nextNotice}</p>
           </div>
         </section>
+
+        <button
+          className="summary-entry"
+          onClick={onOpenSummary}
+          type="button"
+        >
+          <span className="summary-entry__icon" aria-hidden="true">
+            말
+          </span>
+          <span>
+            <small>의료진이 확인한 내용</small>
+            <strong>진료 내용 정리</strong>
+          </span>
+          <span aria-hidden="true">›</span>
+        </button>
+
+        {demoMode && (
+          <aside className="demo-controls" aria-label="발표자 도구">
+            <div>
+              <strong>발표자 도구</strong>
+              <small>실제 사용자에게는 보이지 않습니다</small>
+            </div>
+            <button
+              disabled={busy}
+              onClick={onAdvance}
+              type="button"
+            >
+              {busy ? '전환 중' : '다음 단계로 전환'}
+            </button>
+          </aside>
+        )}
 
         <p className="source-note">
           상태 정보는 병원 시스템에서 확인된 내용만 표시합니다.

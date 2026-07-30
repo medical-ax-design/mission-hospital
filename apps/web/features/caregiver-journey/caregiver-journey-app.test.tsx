@@ -193,6 +193,126 @@ describe('CaregiverJourneyApp', () => {
       await screen.findByText('업무를 완료했습니다'),
     ).toBeInTheDocument();
   });
+
+  it('발표 모드에서만 병원 확인 단계를 전환한다', async () => {
+    const user = userEvent.setup();
+    const linkedJourney = {
+      ...unlinkedJourney,
+      linked: true,
+    };
+    const api = createFakeApi({
+      getDemo: vi.fn().mockResolvedValue(linkedJourney),
+      advanceDemo: vi.fn().mockResolvedValue({
+        ...linkedJourney,
+        treatment: {
+          ...linkedJourney.treatment,
+          stage: 'IN_OPERATING_ROOM',
+          label: '수술실 입실',
+        },
+      }),
+    });
+
+    const { unmount } = render(<CaregiverJourneyApp api={api} />);
+
+    await screen.findByRole('heading', { name: /수술 준비 중/ });
+    expect(
+      screen.queryByRole('button', { name: '다음 단계로 전환' }),
+    ).not.toBeInTheDocument();
+
+    unmount();
+    render(<CaregiverJourneyApp api={api} demoMode />);
+
+    await user.click(
+      await screen.findByRole('button', {
+        name: '다음 단계로 전환',
+      }),
+    );
+
+    expect(api.advanceDemo).toHaveBeenCalledTimes(1);
+    expect(
+      await screen.findByRole('heading', { name: /수술실 입실/ }),
+    ).toBeInTheDocument();
+  });
+
+  it('의료진 확인 전에는 요약을 생성하지 않는다', async () => {
+    const user = userEvent.setup();
+    const api = createFakeApi({
+      getDemo: vi.fn().mockResolvedValue({
+        ...unlinkedJourney,
+        linked: true,
+      }),
+    });
+
+    render(<CaregiverJourneyApp api={api} />);
+
+    await user.click(
+      await screen.findByRole('button', {
+        name: /진료 내용 정리/,
+      }),
+    );
+
+    expect(
+      screen.getByRole('heading', {
+        name: '의료진 설명을 확인 중입니다',
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it('확인된 설명을 가족 공유 미리보기로 보여준다', async () => {
+    const user = userEvent.setup();
+    const confirmedJourney: CaregiverJourney = {
+      ...unlinkedJourney,
+      linked: true,
+      treatment: {
+        ...unlinkedJourney.treatment,
+        stage: 'RECOVERY',
+        label: '회복실 이동',
+      },
+      summary: {
+        status: 'CONFIRMED',
+        confirmedAt: '2026-07-30T05:10:00.000Z',
+        currentStatus: '수술 종료 · 회복실에서 상태 확인 중',
+        items: [
+          '예정된 수술이 종료되었습니다.',
+          '환자는 회복실에서 상태를 확인하고 있습니다.',
+          '음식물 제공은 의료진의 다음 안내를 기다려 주세요.',
+        ],
+        nextSchedule: '회복실 확인 후 병실 이동 예정',
+      },
+    };
+    const api = createFakeApi({
+      getDemo: vi.fn().mockResolvedValue(confirmedJourney),
+    });
+
+    render(<CaregiverJourneyApp api={api} />);
+
+    await user.click(
+      await screen.findByRole('button', {
+        name: /진료 내용 정리/,
+      }),
+    );
+
+    expect(
+      screen.getByText('수술 종료 · 회복실에서 상태 확인 중'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('예정된 수술이 종료되었습니다.'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('회복실 확인 후 병실 이동 예정'),
+    ).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole('button', { name: '가족에게 공유' }),
+    );
+
+    expect(
+      screen.getByRole('dialog', { name: '가상 공유 미리보기' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('수술 종료')).toBeInTheDocument();
+    expect(screen.getByText('회복실 확인 중')).toBeInTheDocument();
+    expect(screen.getByText('병실 이동 예정')).toBeInTheDocument();
+  });
 });
 
 export { createFakeApi, unlinkedJourney };
