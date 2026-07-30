@@ -45,9 +45,18 @@ const journeyResponse = {
       ],
       fallback: '발급되지 않으면 옆 제증명 창구를 방문하세요.',
     },
-    summary: {
-      status: 'UNAVAILABLE',
-    },
+    schedules: [
+      {
+        id: 'schedule-surgery',
+        type: 'SURGERY',
+        title: '위암 수술',
+        startsAt: '2026-07-30T01:30:00.000Z',
+        building: 'MAIN',
+        floor: '2F',
+        location: '수술센터',
+        preparation: ['보호자 대기 장소를 확인해 주세요.'],
+      },
+    ],
   },
 };
 

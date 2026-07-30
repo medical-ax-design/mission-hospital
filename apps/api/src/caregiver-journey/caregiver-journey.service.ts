@@ -48,21 +48,6 @@ const treatmentCopy: Record<
   },
 };
 
-const confirmedSummary: Extract<
-  CaregiverJourney['summary'],
-  { status: 'CONFIRMED' }
-> = {
-  status: 'CONFIRMED',
-  confirmedAt: '2026-07-30T05:10:00.000Z',
-  currentStatus: '수술 종료 · 회복실에서 상태 확인 중',
-  items: [
-    '예정된 수술이 종료되었습니다.',
-    '환자는 회복실에서 상태를 확인하고 있습니다.',
-    '음식물 제공은 의료진의 다음 안내를 기다려 주세요.',
-  ],
-  nextSchedule: '회복실 확인 후 병실 이동 예정',
-};
-
 @Injectable()
 export class CaregiverJourneyService {
   constructor(
@@ -122,10 +107,6 @@ export class CaregiverJourneyService {
         updatedAt: new Date().toISOString(),
         nextNotice: nextCopy.nextNotice,
       },
-      summary:
-        nextStage === 'RECOVERY' || nextStage === 'COMPLETED'
-          ? confirmedSummary
-          : journey.summary,
     });
   }
 }

@@ -17,6 +17,7 @@ describe('CaregiverJourneyService', () => {
 
     expect(result.linked).toBe(true);
     expect(result.treatment.stage).toBe('PREPARING');
+    expect(result.schedules).toHaveLength(3);
   });
 
   it('보호자 업무를 완료한다', async () => {
@@ -59,24 +60,12 @@ describe('CaregiverJourneyService', () => {
     );
   });
 
-  it('회복실 전에는 의료진 확인 요약을 공개하지 않는다', async () => {
-    await service.advanceDemo();
-    const inProgress = await service.advanceDemo();
+  it('치료 단계를 전환해도 등록된 환자 일정을 유지한다', async () => {
+    const initial = await service.getDemo();
+    const next = await service.advanceDemo();
 
-    expect(inProgress.summary.status).toBe('UNAVAILABLE');
-  });
-
-  it('회복실 진입 시 의료진 확인 가상 요약을 공개한다', async () => {
-    await service.advanceDemo();
-    await service.advanceDemo();
-    const recovery = await service.advanceDemo();
-
-    expect(recovery.summary.status).toBe('CONFIRMED');
-    if (recovery.summary.status === 'CONFIRMED') {
-      expect(recovery.summary.items).toContain(
-        '예정된 수술이 종료되었습니다.',
-      );
-    }
+    expect(next.schedules).toEqual(initial.schedules);
+    expect(next).not.toHaveProperty('summary');
   });
 
   it('완료 이후에는 진행 단계를 되돌리지 않는다', async () => {
@@ -87,6 +76,6 @@ describe('CaregiverJourneyService', () => {
     const completed = await service.advanceDemo();
 
     expect(completed.treatment.stage).toBe('COMPLETED');
-    expect(completed.summary.status).toBe('CONFIRMED');
+    expect(completed).not.toHaveProperty('summary');
   });
 });
