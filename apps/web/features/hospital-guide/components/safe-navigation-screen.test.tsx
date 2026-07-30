@@ -110,8 +110,8 @@ describe('SafeNavigationScreen', () => {
       screen.getByTestId('prototype-route-user-marker'),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/붉은 선을 따라 이동하세요/),
-    ).toBeInTheDocument();
+      screen.getAllByText(/붉은 선을 따라 이동하세요/),
+    ).toHaveLength(2);
   });
 
   it('복도가 아닌 곳을 선택하면 경로 대신 재선택 안내를 표시한다', () => {
@@ -155,6 +155,52 @@ describe('SafeNavigationScreen', () => {
     expect(screen.getByRole('alert')).toHaveTextContent(
       '복도 또는 출입구 위에서',
     );
+    expect(
+      screen.queryByTestId('prototype-route-line'),
+    ).not.toBeInTheDocument();
+  });
+
+  it('정밀한 지도 터치 없이 출입구를 선택하고 현재 위치를 다시 설정한다', async () => {
+    const user = userEvent.setup();
+    const cancerFloor = {
+      ...createGuideFloor('1F', 1),
+      mapImageUrl:
+        'https://www.samsunghospital.com/_newhome/ui/home/static/img/info/guide/map/map_cancer_01.png',
+    };
+
+    render(
+      <SafeNavigationScreen
+        buildingName="암병원"
+        destination={{
+          ...destination,
+          id: 'cancer-1f-endoscopy',
+          officialName: '내시경실',
+        }}
+        floors={[cancerFloor]}
+        onBack={vi.fn()}
+        route={mapOnlyRouteFixture}
+        startFloorCode="1F"
+      />,
+    );
+
+    const gateSix = screen.getByRole('button', { name: 'GATE 6' });
+    await user.click(gateSix);
+
+    expect(gateSix).toHaveAttribute('aria-pressed', 'true');
+    expect(
+      screen.getByRole('heading', {
+        name: 'GATE 6에서 내시경실까지',
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByTestId('prototype-route-line'),
+    ).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole('button', { name: '현재 위치 다시 선택' }),
+    );
+
+    expect(gateSix).toHaveAttribute('aria-pressed', 'false');
     expect(
       screen.queryByTestId('prototype-route-line'),
     ).not.toBeInTheDocument();

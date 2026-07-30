@@ -45,6 +45,16 @@ function destinationLabel(destination: GuidePlace) {
     : destination.officialName;
 }
 
+const prototypeLocationOptions: Array<{
+  label: string;
+  point: [number, number];
+}> = [
+  { label: 'GATE 6', point: [34, 85] },
+  { label: 'GATE 7', point: [46, 8] },
+  { label: 'GATE 8', point: [76, 49] },
+  { label: '외래 엘리베이터', point: [41, 47] },
+];
+
 function MapOnlyNavigation({
   buildingName,
   destination,
@@ -63,22 +73,19 @@ function MapOnlyNavigation({
   const [selectionError, setSelectionError] = useState<string | null>(
     null,
   );
+  const [selectedLocationLabel, setSelectedLocationLabel] = useState<
+    string | null
+  >(null);
   const prototypeDestinationPoint = floor
     ? getPrototypeDestinationPoint(floor.code, destination.id)
     : null;
   const supportsPrototypeRoute = prototypeDestinationPoint !== null;
 
-  const selectCurrentPosition = (
-    event: MouseEvent<HTMLButtonElement>,
+  const applyCurrentPosition = (
+    selectedPoint: [number, number],
+    locationLabel: string,
   ) => {
     if (!floor) return;
-    const bounds = event.currentTarget.getBoundingClientRect();
-    if (!bounds.width || !bounds.height) return;
-
-    const selectedPoint: [number, number] = [
-      ((event.clientX - bounds.left) / bounds.width) * 100,
-      ((event.clientY - bounds.top) / bounds.height) * 100,
-    ];
     const nextRoute = getPrototypeRoute(
       floor.code,
       destination.id,
@@ -87,6 +94,7 @@ function MapOnlyNavigation({
 
     if (!nextRoute) {
       setPrototypeRoute(null);
+      setSelectedLocationLabel(null);
       setSelectionError(
         '복도 또는 출입구 위에서 현재 위치를 다시 선택해 주세요.',
       );
@@ -94,6 +102,39 @@ function MapOnlyNavigation({
     }
 
     setPrototypeRoute(nextRoute);
+    setSelectedLocationLabel(locationLabel);
+    setSelectionError(null);
+  };
+
+  const selectCurrentPosition = (
+    event: MouseEvent<HTMLButtonElement>,
+  ) => {
+    if (
+      event.detail === 0 &&
+      event.clientX === 0 &&
+      event.clientY === 0
+    ) {
+      setSelectionError(
+        '키보드로 이용할 때는 지도 아래의 현재 위치 버튼을 선택해 주세요.',
+      );
+      return;
+    }
+
+    const bounds = event.currentTarget.getBoundingClientRect();
+    if (!bounds.width || !bounds.height) return;
+
+    applyCurrentPosition(
+      [
+        ((event.clientX - bounds.left) / bounds.width) * 100,
+        ((event.clientY - bounds.top) / bounds.height) * 100,
+      ],
+      '지도에서 선택한 위치',
+    );
+  };
+
+  const resetCurrentPosition = () => {
+    setPrototypeRoute(null);
+    setSelectedLocationLabel(null);
     setSelectionError(null);
   };
 
@@ -128,6 +169,38 @@ function MapOnlyNavigation({
             <h2>{destinationLabel(destination)}</h2>
           </div>
         </section>
+
+        {supportsPrototypeRoute && (
+          <section
+            aria-labelledby="prototype-location-title"
+            className="prototype-location-picker"
+          >
+            <div>
+              <p className="eyebrow">출발</p>
+              <h2 id="prototype-location-title">현재 위치를 선택하세요</h2>
+              <p>
+                가까운 출입구를 선택하거나 아래 지도에서 현재 위치를
+                눌러 주세요.
+              </p>
+            </div>
+            <div className="prototype-location-picker__options">
+              {prototypeLocationOptions.map((option) => (
+                <button
+                  aria-pressed={
+                    selectedLocationLabel === option.label
+                  }
+                  key={option.label}
+                  onClick={() =>
+                    applyCurrentPosition(option.point, option.label)
+                  }
+                  type="button"
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
 
         {floor?.mapImageUrl ? (
           <figure
@@ -197,7 +270,7 @@ function MapOnlyNavigation({
             )}
             <figcaption>
               {prototypeRoute
-                ? '선택한 위치를 가장 가까운 복도에 맞췄습니다. 붉은 선을 따라 이동하세요.'
+                ? `${selectedLocationLabel}를 가장 가까운 복도에 맞췄습니다. 붉은 선을 따라 이동하세요.`
                 : supportsPrototypeRoute
                   ? '목적지는 표시되어 있습니다. 현재 서 있는 복도나 출입구를 눌러 주세요.'
                   : '지도와 현장 표지판을 함께 확인해 주세요.'}
@@ -214,6 +287,42 @@ function MapOnlyNavigation({
           <p className="route-selection-error" role="alert">
             {selectionError}
           </p>
+        )}
+
+        {prototypeRoute && selectedLocationLabel && (
+          <section
+            aria-live="polite"
+            className="prototype-route-summary"
+          >
+            <div>
+              <p className="eyebrow">경로 안내</p>
+              <h2>
+                {selectedLocationLabel}에서{' '}
+                {destination.officialName}까지
+              </h2>
+            </div>
+            <ol>
+              <li>
+                <span>1</span>
+                현재 위치의 붉은 점에서 출발하세요.
+              </li>
+              <li>
+                <span>2</span>
+                지도 안의 붉은 선을 따라 이동하세요.
+              </li>
+              <li>
+                <span>3</span>
+                초록색 도착 표식에서 시설명을 확인하세요.
+              </li>
+            </ol>
+            <button
+              className="secondary-button"
+              onClick={resetCurrentPosition}
+              type="button"
+            >
+              현재 위치 다시 선택
+            </button>
+          </section>
         )}
 
         {supportsPrototypeRoute && (

@@ -4,6 +4,7 @@ import {
   type RootTab,
 } from './bottom-navigation';
 import { MobileShell } from './mobile-shell';
+import { RootPageHeader } from './root-page-header';
 
 interface ProfileScreenProps {
   journey: CaregiverJourney;
@@ -17,15 +18,16 @@ export function ProfileScreen({
   return (
     <MobileShell compactHeader>
       <main className="screen screen--with-navigation profile-screen">
-        <header className="subpage-heading">
-          <div>
-            <p className="eyebrow">보호자 계정</p>
-            <h1>내 정보</h1>
-          </div>
-          <span className="profile-avatar" aria-hidden="true">
-            {journey.caregiver.displayName.slice(0, 1)}
-          </span>
-        </header>
+        <RootPageHeader
+          accessory={
+            <span className="profile-avatar" aria-hidden="true">
+              {journey.caregiver.displayName.slice(0, 1)}
+            </span>
+          }
+          description="보호자 연결 정보와 공유 범위를 확인합니다."
+          eyebrow="보호자 계정"
+          title="내 정보"
+        />
 
         <section
           className="profile-caregiver-card"
@@ -65,8 +67,8 @@ export function ProfileScreen({
               <dd>{journey.patient.age}세</dd>
             </div>
             <div>
-              <dt>현재 여정</dt>
-              <dd>{journey.patient.procedureName}</dd>
+              <dt>공유 범위</dt>
+              <dd>일정·병원 확인 상태</dd>
             </div>
           </dl>
         </section>

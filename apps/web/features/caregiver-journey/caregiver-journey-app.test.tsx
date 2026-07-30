@@ -453,6 +453,10 @@ describe('CaregiverJourneyApp', () => {
     ).toBeInTheDocument();
     expect(screen.getByText('김정우 환자의 딸')).toBeInTheDocument();
     expect(screen.getByText('68세')).toBeInTheDocument();
+    expect(screen.getByText('일정·병원 확인 상태')).toBeInTheDocument();
+    expect(
+      screen.queryByText(unlinkedJourney.patient.procedureName),
+    ).not.toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: '내 정보' }),
     ).toHaveAttribute('aria-current', 'page');
