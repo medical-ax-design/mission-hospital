@@ -29,6 +29,11 @@
 - [`SECURITY_PRIVACY.md`](./SECURITY_PRIVACY.md): 인증, 권한, 감사와 개인정보 기준
 - [`REFERENCES.md`](./REFERENCES.md): 제품·의료 콘텐츠·기술 근거
 
+## 진행 중 설계
+
+- [`superpowers/specs/2026-07-30-staff-event-workflow-design.md`](./superpowers/specs/2026-07-30-staff-event-workflow-design.md):
+  병원 전산 이벤트 자동 수신, 간호사 예외 처리, 원무 안내 관리와 보호자 화면 반영 설계
+
 ## 아카이브
 
 - [`archive/preparation-orchestration`](./archive/preparation-orchestration):
