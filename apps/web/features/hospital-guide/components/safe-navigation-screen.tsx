@@ -4,12 +4,14 @@ import type {
   RouteAvailability,
   VerifiedRoute,
 } from '@ready-on/contracts/hospital-guide';
-import { useState, type MouseEvent } from 'react';
+import { useEffect, useState, type MouseEvent } from 'react';
 import { MobileShell } from '../../caregiver-journey/components/mobile-shell';
 import {
   getPrototypeDestinationPoint,
+  getPrototypeGuidedRouteOptions,
   getPrototypeRoute,
   validateVerifiedRoute,
+  type PrototypeGuidedRouteOption,
   type PrototypeRouteResult,
 } from '../hospital-guide-model';
 
@@ -40,9 +42,7 @@ function pointsToMotionPath(points: [number, number][]) {
 }
 
 function destinationLabel(destination: GuidePlace) {
-  return destination.officialNumber
-    ? `${destination.officialNumber}. ${destination.officialName}`
-    : destination.officialName;
+  return destination.officialName;
 }
 
 const prototypeLocationOptions: Array<{
@@ -59,12 +59,14 @@ function MapOnlyNavigation({
   buildingName,
   destination,
   floor,
+  floors,
   onBack,
   sourceUrl,
 }: {
   buildingName: string;
   destination: GuidePlace;
   floor: GuideFloor | undefined;
+  floors: GuideFloor[];
   onBack: () => void;
   sourceUrl: string;
 }) {
@@ -76,10 +78,32 @@ function MapOnlyNavigation({
   const [selectedLocationLabel, setSelectedLocationLabel] = useState<
     string | null
   >(null);
+  const [guidedRoute, setGuidedRoute] =
+    useState<PrototypeGuidedRouteOption | null>(null);
   const prototypeDestinationPoint = floor
     ? getPrototypeDestinationPoint(floor.code, destination.id)
     : null;
-  const supportsPrototypeRoute = prototypeDestinationPoint !== null;
+  const guidedRouteOptions = getPrototypeGuidedRouteOptions(
+    destination.id,
+  );
+  const supportsMapSelection = prototypeDestinationPoint !== null;
+  const supportsPrototypeRoute =
+    supportsMapSelection || guidedRouteOptions.length > 0;
+
+  if (guidedRoute) {
+    return (
+      <SegmentedNavigation
+        buildingName={buildingName}
+        destination={destination}
+        floors={floors}
+        notice="현재 시연 범위는 본관 1·2층의 채혈실, 외래 엘리베이터, 원무수납/접수 구간입니다. 공식 안내도 위에 구현한 발표용 이동선이며, 실제 서비스 전 병원의 전체 복도·연결통로·승강기·공사 정보를 현장에서 검증해야 합니다."
+        onBack={() => setGuidedRoute(null)}
+        routeLabel="발표용 시연 경로"
+        segments={guidedRoute.segments}
+        walkCaption="선택한 현재 위치에서 목적지까지 층별 시연 이동선을 표시합니다."
+      />
+    );
+  }
 
   const applyCurrentPosition = (
     selectedPoint: [number, number],
@@ -179,20 +203,32 @@ function MapOnlyNavigation({
               <p className="eyebrow">출발</p>
               <h2 id="prototype-location-title">현재 위치를 선택하세요</h2>
               <p>
-                가까운 출입구를 선택하거나 아래 지도에서 현재 위치를
-                눌러 주세요.
+                {supportsMapSelection
+                  ? '가까운 출입구를 선택하거나 아래 지도에서 현재 위치를 눌러 주세요.'
+                  : '현재 있는 층과 가까운 장소를 선택해 주세요.'}
               </p>
             </div>
             <div className="prototype-location-picker__options">
-              {prototypeLocationOptions.map((option) => (
+              {supportsMapSelection &&
+                prototypeLocationOptions.map((option) => (
+                  <button
+                    aria-pressed={
+                      selectedLocationLabel === option.label
+                    }
+                    key={option.label}
+                    onClick={() =>
+                      applyCurrentPosition(option.point, option.label)
+                    }
+                    type="button"
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              {guidedRouteOptions.map((option) => (
                 <button
-                  aria-pressed={
-                    selectedLocationLabel === option.label
-                  }
-                  key={option.label}
-                  onClick={() =>
-                    applyCurrentPosition(option.point, option.label)
-                  }
+                  aria-pressed="false"
+                  key={option.id}
+                  onClick={() => setGuidedRoute(option)}
                   type="button"
                 >
                   {option.label}
@@ -210,7 +246,7 @@ function MapOnlyNavigation({
                 : ''
             }`}
           >
-            {supportsPrototypeRoute ? (
+            {supportsMapSelection ? (
               <button
                 aria-label="지도에서 현재 위치 선택"
                 className="prototype-floor-route__canvas"
@@ -251,10 +287,10 @@ function MapOnlyNavigation({
                     data-testid="prototype-route-destination"
                     transform={`translate(${
                       prototypeRoute?.destinationPoint[0] ??
-                      prototypeDestinationPoint?.[0]
+                      prototypeDestinationPoint[0]
                     } ${
                       prototypeRoute?.destinationPoint[1] ??
-                      prototypeDestinationPoint?.[1]
+                      prototypeDestinationPoint[1]
                     })`}
                   >
                     <circle r="3.5" />
@@ -272,7 +308,9 @@ function MapOnlyNavigation({
               {prototypeRoute
                 ? `${selectedLocationLabel}를 가장 가까운 복도에 맞췄습니다. 붉은 선을 따라 이동하세요.`
                 : supportsPrototypeRoute
-                  ? '목적지는 표시되어 있습니다. 현재 서 있는 복도나 출입구를 눌러 주세요.'
+                  ? supportsMapSelection
+                    ? '목적지는 표시되어 있습니다. 현재 서 있는 복도나 출입구를 눌러 주세요.'
+                    : '위의 현재 위치를 선택하면 출발층부터 목적지 층까지 순서대로 안내합니다.'
                   : '지도와 현장 표지판을 함께 확인해 주세요.'}
             </figcaption>
           </figure>
@@ -348,27 +386,40 @@ function MapOnlyNavigation({
   );
 }
 
-function VerifiedNavigation({
+function SegmentedNavigation({
   buildingName,
   destination,
   floors,
+  notice,
   onBack,
-  route,
+  routeLabel,
+  segments,
+  walkCaption,
 }: {
   buildingName: string;
   destination: GuidePlace;
   floors: GuideFloor[];
+  notice?: string;
   onBack: () => void;
-  route: VerifiedRoute;
+  routeLabel: string;
+  segments: VerifiedRoute['segments'];
+  walkCaption: string;
 }) {
   const [stepIndex, setStepIndex] = useState(0);
-  const step = route.segments[stepIndex];
+  const [mapZoomed, setMapZoomed] = useState(false);
+  const step = segments[stepIndex];
+
+  useEffect(() => {
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    setMapZoomed(false);
+  }, [stepIndex]);
 
   if (!step) return null;
 
   const nextStep = () =>
     setStepIndex((current) =>
-      Math.min(current + 1, route.segments.length - 1),
+      Math.min(current + 1, segments.length - 1),
     );
 
   return (
@@ -377,10 +428,10 @@ function VerifiedNavigation({
         <button className="text-back" onClick={onBack} type="button">
           ← 층별 안내
         </button>
-        <p className="eyebrow">병원 검증 경로</p>
+        <p className="eyebrow">{routeLabel}</p>
         <h1 className="page-title">{destinationLabel(destination)} 길찾기</h1>
         <p className="safe-navigation__progress">
-          {stepIndex + 1} / {route.segments.length}
+          {stepIndex + 1} / {segments.length}
         </p>
 
         {step.kind === 'WALK' ? (
@@ -401,23 +452,47 @@ function VerifiedNavigation({
               }
 
               const firstPoint = step.points[0];
+              const lastPoint = step.points.at(-1);
               return (
-                <figure className="verified-floor-route">
-                  <div className="verified-floor-route__canvas">
-                    <img
-                      alt={`${buildingName} ${floor.label} 검증 안내도`}
-                      src={floor.mapImageUrl}
-                    />
-                    <svg
-                      aria-label={`${floor.label}에서 이동할 검증 경로`}
-                      className="verified-floor-route__overlay"
-                      preserveAspectRatio="none"
-                      role="img"
-                      viewBox="0 0 100 100"
-                    >
+                <figure
+                  className={`verified-floor-route ${
+                    mapZoomed ? 'verified-floor-route--zoomed' : ''
+                  }`}
+                >
+                  <div className="verified-floor-route__viewport">
+                    <div className="verified-floor-route__canvas">
+                      <img
+                        alt={`${buildingName} ${floor.label} 검증 안내도`}
+                        src={floor.mapImageUrl}
+                      />
+                      <svg
+                        aria-label={`${floor.label}에서 이동할 검증 경로`}
+                        className="verified-floor-route__overlay"
+                        preserveAspectRatio="none"
+                        role="img"
+                        viewBox="0 0 100 100"
+                      >
+                      <defs>
+                        <marker
+                          id={`route-arrow-${stepIndex}`}
+                          markerHeight="5"
+                          markerUnits="userSpaceOnUse"
+                          markerWidth="5"
+                          orient="auto"
+                          refX="4"
+                          refY="2.5"
+                          viewBox="0 0 5 5"
+                        >
+                          <path
+                            d="M 0 0 L 5 2.5 L 0 5 Z"
+                            data-testid="route-direction-arrow"
+                          />
+                        </marker>
+                      </defs>
                       <polyline
                         data-testid="route-line"
                         fill="none"
+                        markerEnd={`url(#route-arrow-${stepIndex})`}
                         points={pointsToPolyline(step.points)}
                       />
                       {firstPoint && (
@@ -426,15 +501,10 @@ function VerifiedNavigation({
                             className="verified-route-user verified-route-user--animated"
                             data-testid="route-user-marker"
                           >
-                            <circle r="3.2" />
+                            <circle r="2.3" />
                             <circle
-                              className="verified-route-user__head"
-                              cy="-0.9"
-                              r="0.8"
-                            />
-                            <path
-                              className="verified-route-user__body"
-                              d="M -1.4 1.7 C -1.1 0.3 1.1 0.3 1.4 1.7 Z"
+                              className="verified-route-user__dot"
+                              r="0.85"
                             />
                             <animateMotion
                               dur="5s"
@@ -446,29 +516,42 @@ function VerifiedNavigation({
                             className="verified-route-user verified-route-user--static"
                             transform={`translate(${firstPoint[0]} ${firstPoint[1]})`}
                           >
-                            <circle r="3.2" />
+                            <circle r="2.3" />
                             <circle
-                              className="verified-route-user__head"
-                              cy="-0.9"
-                              r="0.8"
-                            />
-                            <path
-                              className="verified-route-user__body"
-                              d="M -1.4 1.7 C -1.1 0.3 1.1 0.3 1.4 1.7 Z"
+                              className="verified-route-user__dot"
+                              r="0.85"
                             />
                           </g>
                         </>
                       )}
-                    </svg>
+                      {lastPoint && (
+                        <g
+                          className="verified-route-end"
+                          data-testid="route-end-marker"
+                          transform={`translate(${lastPoint[0]} ${lastPoint[1]})`}
+                        >
+                          <circle r="2.1" />
+                          <circle r="0.7" />
+                        </g>
+                      )}
+                      </svg>
+                    </div>
                   </div>
                   <figcaption>
-                    {buildingName} {floor.label}의 검증된 복도 안에서만
-                    이동선을 표시합니다.
+                    {buildingName} {floor.label} · {walkCaption}
                   </figcaption>
+                  <button
+                    aria-pressed={mapZoomed}
+                    className="map-zoom-button"
+                    onClick={() => setMapZoomed((current) => !current)}
+                    type="button"
+                  >
+                    {mapZoomed ? '지도 원래 크기' : '지도 확대'}
+                  </button>
                 </figure>
               );
             })()}
-            {stepIndex < route.segments.length - 1 ? (
+            {stepIndex < segments.length - 1 ? (
               <button
                 className="primary-button"
                 onClick={nextStep}
@@ -488,6 +571,14 @@ function VerifiedNavigation({
           </section>
         ) : (
           <section className="verified-transition">
+            <p className="route-connector-name">
+              {step.mode === 'ELEVATOR' &&
+              step.bankId === 'main-outpatient-lift'
+                ? '본관 외래 엘리베이터'
+                : step.mode === 'ELEVATOR'
+                  ? '엘리베이터'
+                  : '에스컬레이터'}
+            </p>
             <span aria-hidden="true">
               {step.mode === 'ELEVATOR' ? '↕' : '↗'}
             </span>
@@ -511,6 +602,12 @@ function VerifiedNavigation({
             </button>
           </section>
         )}
+        {notice && (
+          <aside className="prototype-route-notice">
+            <strong>경로 정확도 안내</strong>
+            <p>{notice}</p>
+          </aside>
+        )}
       </main>
     </MobileShell>
   );
@@ -530,12 +627,14 @@ export function SafeNavigationScreen({
     const verifiedRoute = validateVerifiedRoute(route);
     if (verifiedRoute) {
       return (
-        <VerifiedNavigation
+        <SegmentedNavigation
           buildingName={buildingName}
           destination={destination}
           floors={floors}
           onBack={onBack}
-          route={verifiedRoute}
+          routeLabel="병원 검증 경로"
+          segments={verifiedRoute.segments}
+          walkCaption="병원이 검증한 복도 안에서만 이동선을 표시합니다."
         />
       );
     }
@@ -547,6 +646,7 @@ export function SafeNavigationScreen({
         buildingName={buildingName}
         destination={destination}
         floor={startFloor}
+        floors={floors}
         onBack={onBack}
         sourceUrl={route.sourceUrl}
       />

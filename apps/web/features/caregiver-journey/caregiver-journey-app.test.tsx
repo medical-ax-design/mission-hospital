@@ -896,7 +896,7 @@ describe('CaregiverJourneyApp', () => {
     );
     expect(
       screen.getByRole('heading', {
-        name: '공식 지도에서 위치를 확인하세요',
+        name: '지도에서 현재 위치를 선택하세요',
       }),
     ).toBeInTheDocument();
     expect(screen.queryByTestId('route-line')).not.toBeInTheDocument();
@@ -944,9 +944,87 @@ describe('CaregiverJourneyApp', () => {
     );
     expect(
       screen.getByRole('heading', {
-        name: '공식 지도에서 위치를 확인하세요',
+        name: '지도에서 현재 위치를 선택하세요',
       }),
     ).toBeInTheDocument();
+  });
+
+  it('입원 서류 발급 목적지까지 현재 위치에서 층을 바꾸며 안내한다', async () => {
+    const user = userEvent.setup();
+    const api = createFakeApi({
+      getDemo: vi.fn().mockResolvedValue({
+        ...unlinkedJourney,
+        linked: true,
+        guide: null,
+      }),
+    });
+
+    render(<CaregiverJourneyApp api={api} />);
+
+    await user.click(
+      await screen.findByRole('button', {
+        name: '입원 서류 발급 공식 처리 방법을 확인하세요',
+      }),
+    );
+    await user.click(
+      screen.getByRole('button', { name: '공식 처리 방법 확인' }),
+    );
+    await user.click(
+      screen.getAllByRole('button', { name: '이 장소로 안내' })[0]!,
+    );
+    await user.click(
+      screen.getByRole('button', {
+        name: '공식 지도에서 위치 확인',
+      }),
+    );
+
+    expect(
+      screen.getByRole('heading', {
+        name: '현재 위치를 선택하세요',
+      }),
+    ).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole('button', { name: '본관 2층 채혈실' }),
+    );
+    expect(
+      screen.getByRole('heading', {
+        name: '채혈실에서 외래 엘리베이터 입구까지',
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', {
+        name: '원무수납/접수 길찾기',
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId('route-line')).toBeInTheDocument();
+    expect(
+      screen.getByTestId('route-direction-arrow'),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId('route-user-marker')).toBeInTheDocument();
+    expect(screen.getByTestId('route-end-marker')).toBeInTheDocument();
+
+    const zoomButton = screen.getByRole('button', { name: '지도 확대' });
+    await user.click(zoomButton);
+    expect(zoomButton).toHaveAttribute('aria-pressed', 'true');
+
+    await user.click(
+      screen.getByRole('button', {
+        name: '이동 수단에 도착했어요',
+      }),
+    );
+    expect(screen.getByText('2층 → 1층')).toBeInTheDocument();
+    expect(screen.getByText('본관 외래 엘리베이터')).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole('button', { name: '1층에 도착했어요' }),
+    );
+    expect(
+      screen.getByRole('heading', {
+        name: '외래 엘리베이터 출구에서 원무수납/접수까지',
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId('route-line')).toBeInTheDocument();
   });
 });
 

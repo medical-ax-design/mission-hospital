@@ -37,7 +37,10 @@ describe('SafeNavigationScreen', () => {
     render(
       <SafeNavigationScreen
         buildingName="본관"
-        destination={destination}
+        destination={{
+          ...destination,
+          id: 'main-1f-unsupported-place',
+        }}
         floors={[createGuideFloor('1F', 1)]}
         onBack={vi.fn()}
         route={mapOnlyRouteFixture}

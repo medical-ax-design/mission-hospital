@@ -23,6 +23,12 @@ export interface PrototypeRouteResult {
   points: RoutePoint[];
 }
 
+export interface PrototypeGuidedRouteOption {
+  id: string;
+  label: string;
+  segments: VerifiedRoute['segments'];
+}
+
 const cancerFirstFloorGraph: PrototypeRouteGraph = {
   nodes: [
     { id: 'gate-6', point: [34, 85] },
@@ -61,6 +67,71 @@ const cancerFirstFloorGraph: PrototypeRouteGraph = {
     'cancer-1f-medical-record-copy': 'records',
   },
 };
+
+const mainPaymentRouteOptions: PrototypeGuidedRouteOption[] = [
+  {
+    id: 'main-1f-gate-2',
+    label: '본관 1층 정문',
+    segments: [
+      {
+        kind: 'WALK',
+        floorKey: 'MAIN:1F',
+        label: '본관 1층 정문에서 원무수납/접수까지',
+        startNodeId: 'main-1f-gate-2',
+        endNodeId: 'main-1f-payment',
+        points: [
+          [58, 88],
+          [57, 76],
+          [54, 68],
+          [50, 61],
+        ],
+      },
+    ],
+  },
+  {
+    id: 'main-2f-blood-collection',
+    label: '본관 2층 채혈실',
+    segments: [
+      {
+        kind: 'WALK',
+        floorKey: 'MAIN:2F',
+        label: '채혈실에서 외래 엘리베이터 입구까지',
+        startNodeId: 'main-2f-blood-collection',
+        endNodeId: 'main-lift-2f',
+        points: [
+          [43, 27],
+          [42, 33],
+          [39, 38],
+          [38, 42],
+        ],
+      },
+      {
+        kind: 'VERTICAL',
+        mode: 'ELEVATOR',
+        fromFloorKey: 'MAIN:2F',
+        toFloorKey: 'MAIN:1F',
+        entryNodeId: 'main-lift-2f',
+        exitNodeId: 'main-lift-1f',
+        entryPoint: [38, 42],
+        exitPoint: [58, 55],
+        bankId: 'main-outpatient-lift',
+      },
+      {
+        kind: 'WALK',
+        floorKey: 'MAIN:1F',
+        label: '외래 엘리베이터 출구에서 원무수납/접수까지',
+        startNodeId: 'main-lift-1f',
+        endNodeId: 'main-1f-payment',
+        points: [
+          [58, 55],
+          [55, 57],
+          [52, 59],
+          [50, 61],
+        ],
+      },
+    ],
+  },
+];
 
 function pointsEqual(left: RoutePoint, right: RoutePoint) {
   return left[0] === right[0] && left[1] === right[1];
@@ -199,6 +270,17 @@ export function getPrototypeDestinationPoint(
       ({ id }) => id === destinationNodeId,
     )?.point ?? null
   );
+}
+
+export function getPrototypeGuidedRouteOptions(
+  destinationPlaceId: string,
+): PrototypeGuidedRouteOption[] {
+  if (destinationPlaceId !== 'main-1f-payment') return [];
+
+  return mainPaymentRouteOptions.map((option) => ({
+    ...option,
+    segments: structuredClone(option.segments),
+  }));
 }
 
 export function sortFloors(floors: GuideFloor[]) {

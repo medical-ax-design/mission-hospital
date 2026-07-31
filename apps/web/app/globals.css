@@ -915,6 +915,15 @@ button:focus-visible {
   position: relative;
 }
 
+.verified-floor-route__viewport {
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.verified-floor-route--zoomed .verified-floor-route__canvas {
+  width: 170%;
+}
+
 .verified-floor-route__canvas img {
   display: block;
   width: 100%;
@@ -935,15 +944,28 @@ button:focus-visible {
   stroke-linejoin: round;
 }
 
+.verified-floor-route__overlay marker path {
+  fill: #e62525;
+}
+
 .verified-route-user > circle:first-child {
   fill: #fff;
   stroke: #e62525;
   stroke-width: 1.5;
 }
 
-.verified-route-user__head,
-.verified-route-user__body {
+.verified-route-user__dot {
   fill: #e62525;
+}
+
+.verified-route-end circle:first-child {
+  fill: #fff;
+  stroke: var(--green);
+  stroke-width: 1.2;
+}
+
+.verified-route-end circle:last-child {
+  fill: var(--green);
 }
 
 .verified-route-user--static {
@@ -955,6 +977,26 @@ button:focus-visible {
   color: var(--muted);
   font-size: 12px;
   line-height: 1.5;
+}
+
+.map-zoom-button {
+  width: calc(100% - 30px);
+  min-height: 44px;
+  margin: 0 15px 15px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--green);
+  background: var(--paper);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.route-connector-name {
+  margin: 0 0 18px;
+  color: var(--green);
+  font-size: 14px;
+  font-weight: 800;
 }
 
 .verified-transition {
@@ -3663,6 +3705,11 @@ a:focus-visible {
 
 .linked-patient-card {
   background: var(--paper);
+}
+
+.navigation-destination {
+  color: #fff;
+  background: var(--green);
 }
 
 .prototype-location-picker__options button {

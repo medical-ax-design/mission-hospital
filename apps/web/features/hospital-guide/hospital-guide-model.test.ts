@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   getPrototypeDestinationPoint,
+  getPrototypeGuidedRouteOptions,
   getPrototypeRoute,
   getRouteAvailability,
   sortFloors,
@@ -65,6 +66,31 @@ describe('hospital guide model', () => {
     expect(
       getPrototypeDestinationPoint('2F', 'cancer-1f-payment'),
     ).toBeNull();
+  });
+
+  it('본관 2층 채혈실에서 1층 원무수납까지 층별 시연 경로를 연결한다', () => {
+    const route = getPrototypeGuidedRouteOptions(
+      'main-1f-payment',
+    ).find(({ id }) => id === 'main-2f-blood-collection');
+
+    expect(route?.segments.map(({ kind }) => kind)).toEqual([
+      'WALK',
+      'VERTICAL',
+      'WALK',
+    ]);
+    expect(route?.segments[0]).toMatchObject({
+      floorKey: 'MAIN:2F',
+      endNodeId: 'main-lift-2f',
+    });
+    expect(route?.segments[1]).toMatchObject({
+      mode: 'ELEVATOR',
+      fromFloorKey: 'MAIN:2F',
+      toFloorKey: 'MAIN:1F',
+    });
+    expect(route?.segments[2]).toMatchObject({
+      floorKey: 'MAIN:1F',
+      endNodeId: 'main-1f-payment',
+    });
   });
 
   it('엘리베이터 입구와 층별 보행선이 연결된 승인 경로를 허용한다', () => {
