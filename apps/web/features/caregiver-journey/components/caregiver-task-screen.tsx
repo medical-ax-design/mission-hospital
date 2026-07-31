@@ -42,9 +42,9 @@ export function CaregiverTaskScreen({
         <h1 className="page-title">{journey.task.title}</h1>
 
         <section className="destination-card" aria-labelledby="destination">
-          <p>처리 방법 확인</p>
-          <h2 id="destination">온라인·모바일·병원 방문</h2>
-          <small>삼성서울병원 공식 안내에서 확인합니다.</small>
+          <p>확인 장소</p>
+          <h2 id="destination">암병원 2층 원무수납</h2>
+          <small>삼성서울병원 공식 안내도 07번 시설입니다.</small>
         </section>
 
         <section className="detail-section" aria-labelledby="required-items">
@@ -65,8 +65,8 @@ export function CaregiverTaskScreen({
             <h2 id="before-moving">이동 전 확인</h2>
           </div>
           <p className="detail-copy">
-            서류 종류와 신청자 관계에 따라 준비물과 발급 방법이
-            달라질 수 있습니다. 공식 처리 방법을 먼저 확인해 주세요.
+            서류 종류와 신청자 관계에 따라 준비물이 달라질 수
+            있습니다. 이동 전에 공식 구비서류를 확인해 주세요.
           </p>
         </section>
 

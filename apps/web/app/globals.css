@@ -604,12 +604,6 @@ button:focus-visible {
   font-weight: 800;
 }
 
-.hospital-purpose-result__directory {
-  width: 100%;
-  min-height: 48px;
-  margin-top: 16px;
-}
-
 .building-directory > .lead {
   margin-bottom: 20px;
 }

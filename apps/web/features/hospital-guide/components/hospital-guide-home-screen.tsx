@@ -79,7 +79,7 @@ export function HospitalGuideHomeScreen({
           >
             <span aria-hidden="true">문서</span>
             <strong>서류 발급</strong>
-            <small>온라인·모바일 발급 가능 여부와 공식 원무 장소</small>
+            <small>암병원 2층 원무수납의 준비물과 처리 순서</small>
           </button>
         </section>
 
