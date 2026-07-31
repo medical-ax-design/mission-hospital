@@ -37,6 +37,23 @@ const mainFirstFloor = {
   ],
 };
 
+const cancerSecondFloor = {
+  ...createGuideFloor('2F', 2),
+  sourceUrl:
+    'https://www.samsunghospital.com/_newhome/info/guide/cancer/2F.html',
+  places: [
+    {
+      id: 'cancer-2f-payment',
+      officialNumber: '07',
+      officialName: '원무수납',
+      aliases: ['원무', '수납'],
+      mapX: null,
+      mapY: null,
+      sourceStatus: 'OFFICIAL_PUBLIC' as const,
+    },
+  ],
+};
+
 export const hospitalGuideCatalogFixture =
   HospitalGuideCatalogSchema.parse({
     checkedAt: '2026-07-30',
@@ -80,6 +97,7 @@ export const hospitalGuideCatalogFixture =
             sourceUrl:
               'https://www.samsunghospital.com/_newhome/info/guide/cancer/B3F.html',
           },
+          cancerSecondFloor,
           {
             ...createGuideFloor('11F', 11),
             sourceUrl:
@@ -114,23 +132,22 @@ export const hospitalGuideCatalogFixture =
         searchTerms: ['제증명', '진료비 서류'],
         options: [
           {
-            id: 'document-online',
-            channel: 'ONLINE',
-            placeId: null,
-            title: '홈페이지에서 발급',
-            requiredItems: ['환자 본인인증 수단'],
-            orderedSteps: ['환자 본인인증 후 발급 가능 목록을 확인하세요.'],
-            sourceUrl:
-              'https://samsunghospital.com/home/healthChart/issueService/InfoIssueCertiList.do',
-            sourceStatus: 'OFFICIAL_PUBLIC',
-          },
-          {
-            id: 'document-onsite-main',
+            id: 'document-onsite-cancer-2f',
             channel: 'ONSITE',
-            placeId: 'main-1f-payment',
-            title: '본관 원무 수납에서 확인',
-            requiredItems: ['환자 신분증', '신청자 신분증'],
-            orderedSteps: ['공식 원무 수납 장소에서 확인하세요.'],
+            placeId: 'cancer-2f-payment',
+            title: '암병원 2층 원무 수납에서 확인',
+            requiredItems: [
+              '환자 신분증',
+              '신청자 신분증',
+              '가족관계증명서',
+              '환자가 자필 서명한 동의서',
+            ],
+            orderedSteps: [
+              '필요한 서류가 홈페이지·모바일 발급 대상인지 먼저 확인하세요.',
+              '최초 발급과 재발급 중 어느 경우인지 확인하세요.',
+              '보호자 발급 구비서류를 준비하세요.',
+              '공식 원무 수납 장소에서 발급 가능 여부를 확인하세요.',
+            ],
             sourceUrl:
               'https://samsunghospital.com/home/healthChart/issueService/InfoIssueCertiList.do',
             sourceStatus: 'OFFICIAL_PUBLIC',
@@ -145,9 +162,9 @@ export const documentIssuanceResultFixture =
     purpose: hospitalGuideCatalogFixture.purposes[0],
     places: [
       {
-        buildingId: 'MAIN',
-        floorCode: '1F',
-        place: mainFirstFloor.places[0],
+        buildingId: 'CANCER',
+        floorCode: '2F',
+        place: cancerSecondFloor.places[0],
       },
     ],
   });

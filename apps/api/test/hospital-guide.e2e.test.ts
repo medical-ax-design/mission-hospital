@@ -48,8 +48,13 @@ describe('hospital guide API', () => {
       response.body,
     ).result;
     expect(result.purpose.id).toBe('document-issuance');
-    expect(result.places.some(({ buildingId }) => buildingId === 'MAIN'))
-      .toBe(true);
+    expect(result.purpose.options).toHaveLength(1);
+    expect(result.places).toEqual([
+      expect.objectContaining({
+        buildingId: 'CANCER',
+        floorCode: '2F',
+      }),
+    ]);
     expect(JSON.stringify(result)).not.toContain('키오스크');
   });
 });

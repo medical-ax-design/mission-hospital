@@ -81,6 +81,8 @@ export function CaregiverJourneyApp({
     useState<HospitalGuidePurposeResult | null>(null);
   const [hospitalGuideTarget, setHospitalGuideTarget] =
     useState<HospitalGuideTarget | null>(null);
+  const [hospitalDirectoryBackView, setHospitalDirectoryBackView] =
+    useState<JourneyView>('service-guide');
 
   const openHospitalPurpose = (query: string) => {
     setActionError(null);
@@ -233,6 +235,7 @@ export function CaregiverJourneyApp({
         onOpenPurpose={openHospitalPurpose}
         onOpenDirectory={() => {
           setHospitalGuideTarget(null);
+          setHospitalDirectoryBackView('service-guide');
           setView('hospital-directory');
         }}
         onOpenRestrictions={() => setView('restrictions')}
@@ -255,10 +258,6 @@ export function CaregiverJourneyApp({
       <PurposeResultScreen
         result={hospitalPurpose}
         onBack={() => setView('service-guide')}
-        onOpenDirectory={() => {
-          setHospitalGuideTarget(null);
-          setView('hospital-directory');
-        }}
         onOpenPlace={(
           buildingId: GuideBuildingId,
           floorCode: string,
@@ -269,6 +268,7 @@ export function CaregiverJourneyApp({
             floorCode,
             placeId,
           });
+          setHospitalDirectoryBackView('hospital-purpose');
           setView('hospital-directory');
         }}
       />
@@ -280,7 +280,7 @@ export function CaregiverJourneyApp({
       <BuildingDirectoryScreen
         catalog={hospitalCatalog}
         initialTarget={hospitalGuideTarget}
-        onBack={() => setView('service-guide')}
+        onBack={() => setView(hospitalDirectoryBackView)}
         onNavigate={(target) => {
           setHospitalGuideTarget(target);
           setView('safe-navigation');

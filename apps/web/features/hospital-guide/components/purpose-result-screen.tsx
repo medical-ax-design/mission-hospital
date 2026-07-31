@@ -13,7 +13,6 @@ const channelLabels = {
 interface PurposeResultScreenProps {
   result: HospitalGuidePurposeResult;
   onBack: () => void;
-  onOpenDirectory: () => void;
   onOpenPlace: (
     buildingId: GuideBuildingId,
     floorCode: string,
@@ -24,7 +23,6 @@ interface PurposeResultScreenProps {
 export function PurposeResultScreen({
   result,
   onBack,
-  onOpenDirectory,
   onOpenPlace,
 }: PurposeResultScreenProps) {
   return (
@@ -36,8 +34,7 @@ export function PurposeResultScreen({
         <p className="eyebrow">공식 처리 방법</p>
         <h1 className="page-title">{result.purpose.name}</h1>
         <p className="lead">
-          방문하기 전에 온라인이나 모바일에서 발급 가능한지 먼저
-          확인하세요.
+          현재 보호자 여정에서 확인할 장소만 안내합니다.
         </p>
 
         <div className="purpose-option-list">
@@ -114,14 +111,6 @@ export function PurposeResultScreen({
             );
           })}
         </div>
-
-        <button
-          className="secondary-button hospital-purpose-result__directory"
-          onClick={onOpenDirectory}
-          type="button"
-        >
-          전체 건물·층별 안내
-        </button>
       </main>
     </MobileShell>
   );

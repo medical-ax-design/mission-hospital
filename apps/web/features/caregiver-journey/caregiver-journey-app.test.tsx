@@ -273,6 +273,15 @@ describe('CaregiverJourneyApp', () => {
         name: '서류 발급',
       }),
     ).toBeInTheDocument();
+    expect(screen.getAllByRole('article')).toHaveLength(1);
+    expect(
+      screen.getByText('암병원 2F · 07. 원무수납'),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', {
+        name: '전체 건물·층별 안내',
+      }),
+    ).not.toBeInTheDocument();
     expect(screen.queryByTestId('route-line')).not.toBeInTheDocument();
   });
 
@@ -336,8 +345,10 @@ describe('CaregiverJourneyApp', () => {
         name: '서류 발급',
       }),
     ).toBeInTheDocument();
-    expect(screen.getByText('홈페이지에서 발급')).toBeInTheDocument();
-    expect(screen.getByText('본관 원무 수납에서 확인')).toBeInTheDocument();
+    expect(
+      screen.getByText('암병원 2층 원무 수납에서 확인'),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('홈페이지에서 발급')).not.toBeInTheDocument();
   });
 
   it('발표 모드 치료 화면에서만 로컬 단계 제어를 제공한다', async () => {
@@ -758,8 +769,13 @@ describe('CaregiverJourneyApp', () => {
     expect(
       await screen.findByRole('heading', { name: '서류 발급' }),
     ).toBeInTheDocument();
-    expect(screen.getByText('홈페이지에서 발급')).toBeInTheDocument();
-    expect(screen.getByText('본관 원무 수납에서 확인')).toBeInTheDocument();
+    expect(
+      screen.getByText('암병원 2층 원무 수납에서 확인'),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('홈페이지에서 발급')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('본관 원무 수납에서 확인'),
+    ).not.toBeInTheDocument();
     expect(screen.queryByText(/키오스크|예상 대기/)).not
       .toBeInTheDocument();
   });
@@ -885,9 +901,9 @@ describe('CaregiverJourneyApp', () => {
     );
 
     expect(
-      screen.getByRole('heading', { name: '본관 1층' }),
+      screen.getByRole('heading', { name: '암병원 2층' }),
     ).toBeInTheDocument();
-    expect(screen.getByText('원무수납/접수')).toBeInTheDocument();
+    expect(screen.getByText('원무수납')).toBeInTheDocument();
 
     await user.click(
       screen.getByRole('button', {
@@ -896,10 +912,9 @@ describe('CaregiverJourneyApp', () => {
     );
     expect(
       screen.getByRole('heading', {
-        name: '공식 지도에서 위치를 확인하세요',
+        name: '원무수납 길찾기',
       }),
     ).toBeInTheDocument();
-    expect(screen.queryByTestId('route-line')).not.toBeInTheDocument();
   });
 
   it('병원 안내 API가 응답하지 않아도 입원 서류 발급 길찾기를 연다', async () => {
@@ -934,7 +949,7 @@ describe('CaregiverJourneyApp', () => {
       screen.getAllByRole('button', { name: '이 장소로 안내' })[0]!,
     );
     expect(
-      screen.getByRole('heading', { name: '본관 1층' }),
+      screen.getByRole('heading', { name: '암병원 2층' }),
     ).toBeInTheDocument();
 
     await user.click(
@@ -944,9 +959,10 @@ describe('CaregiverJourneyApp', () => {
     );
     expect(
       screen.getByRole('heading', {
-        name: '공식 지도에서 위치를 확인하세요',
+        name: '원무수납 길찾기',
       }),
     ).toBeInTheDocument();
+    expect(screen.getByTestId('route-line')).toBeInTheDocument();
   });
 
   it('수술환자가족대기실에서 암병원 2층 원무수납까지 실제 층 전환 경로를 안내한다', async () => {

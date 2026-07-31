@@ -84,21 +84,22 @@ describe('HospitalGuideService', () => {
     expect(service.getCatalog().buildings[0]?.name).toBe('본관');
   });
 
-  it('서류 발급을 공식 온라인·모바일·방문 방법으로 연결한다', () => {
+  it('서류 발급을 암병원 2층 원무수납 한 곳으로 연결한다', () => {
     const result = service.findPurpose('서류 발급');
 
     expect(result.purpose.id).toBe('document-issuance');
-    expect(result.purpose.options.map(({ channel }) => channel)).toEqual(
-      expect.arrayContaining(['ONLINE', 'MOBILE', 'ONSITE']),
-    );
-    expect(result.places).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          buildingId: 'MAIN',
-          floorCode: '1F',
-        }),
-      ]),
-    );
+    expect(result.purpose.options).toHaveLength(1);
+    expect(result.purpose.options[0]).toMatchObject({
+      id: 'document-onsite-cancer-2f',
+      channel: 'ONSITE',
+      placeId: 'cancer-2f-payment',
+    });
+    expect(result.places).toEqual([
+      expect.objectContaining({
+        buildingId: 'CANCER',
+        floorCode: '2F',
+      }),
+    ]);
     expect(JSON.stringify(result)).not.toContain('키오스크');
   });
 
