@@ -81,6 +81,35 @@ describe('hospital guide contracts', () => {
     ).toThrow();
   });
 
+  it('현재 공식 지도에서 좌표화한 경로를 별도 출처로 허용한다', () => {
+    const route = RouteAvailabilitySchema.parse({
+      status: 'VERIFIED',
+      sourceStatus: 'OFFICIAL_PUBLIC',
+      sourceCheckedAt: '2026-07-31',
+      sourceUrls: [
+        'https://www.samsunghospital.com/_newhome/info/guide/cancer/3F.html',
+      ],
+      segments: [
+        {
+          kind: 'WALK',
+          floorKey: 'CANCER:3F',
+          label: '대기실에서 엘리베이터까지',
+          startNodeId: 'waiting',
+          endNodeId: 'elevator',
+          points: [
+            [36.89, 21.18],
+            [32.12, 21.74],
+          ],
+        },
+      ],
+    });
+
+    expect(route).toMatchObject({
+      status: 'VERIFIED',
+      sourceStatus: 'OFFICIAL_PUBLIC',
+    });
+  });
+
   it('지도 영역 밖의 승인 경로 좌표를 거부한다', () => {
     expect(() =>
       RouteAvailabilitySchema.parse({

@@ -1,7 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import {
-  getPrototypeDestinationPoint,
-  getPrototypeRoute,
   getRouteAvailability,
   sortFloors,
   validateVerifiedRoute,
@@ -31,40 +29,6 @@ describe('hospital guide model', () => {
       status: 'MAP_ONLY',
       sourceUrl: expect.stringContaining('samsunghospital.com'),
     });
-  });
-
-  it('암병원 1층의 선택 위치를 복도 노드에 맞추고 목적지까지 연결한다', () => {
-    expect(
-      getPrototypeRoute('1F', 'cancer-1f-endoscopy', [35, 84]),
-    ).toEqual({
-      currentPoint: [34, 85],
-      destinationPoint: [52, 37],
-      points: [
-        [34, 85],
-        [41, 80],
-        [49, 77],
-        [52, 69],
-        [52, 63],
-        [52, 56],
-        [52, 50],
-        [52, 37],
-      ],
-    });
-  });
-
-  it('복도 축과 먼 위치는 길찾기 시작점으로 사용하지 않는다', () => {
-    expect(
-      getPrototypeRoute('1F', 'cancer-1f-endoscopy', [90, 10]),
-    ).toBeNull();
-  });
-
-  it('지원하는 목적지의 지도상 도착점을 반환한다', () => {
-    expect(
-      getPrototypeDestinationPoint('1F', 'cancer-1f-payment'),
-    ).toEqual([52, 63]);
-    expect(
-      getPrototypeDestinationPoint('2F', 'cancer-1f-payment'),
-    ).toBeNull();
   });
 
   it('엘리베이터 입구와 층별 보행선이 연결된 승인 경로를 허용한다', () => {

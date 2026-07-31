@@ -887,11 +887,11 @@ describe('CaregiverJourneyApp', () => {
     expect(
       screen.getByRole('heading', { name: '본관 1층' }),
     ).toBeInTheDocument();
-    expect(screen.getByText('25. 원무수납/접수')).toBeInTheDocument();
+    expect(screen.getByText('원무수납/접수')).toBeInTheDocument();
 
     await user.click(
       screen.getByRole('button', {
-        name: '공식 지도에서 위치 확인',
+        name: '위치·검증 경로 확인',
       }),
     );
     expect(
@@ -939,7 +939,7 @@ describe('CaregiverJourneyApp', () => {
 
     await user.click(
       screen.getByRole('button', {
-        name: '공식 지도에서 위치 확인',
+        name: '위치·검증 경로 확인',
       }),
     );
     expect(
@@ -947,6 +947,83 @@ describe('CaregiverJourneyApp', () => {
         name: '공식 지도에서 위치를 확인하세요',
       }),
     ).toBeInTheDocument();
+  });
+
+  it('수술환자가족대기실에서 암병원 2층 원무수납까지 실제 층 전환 경로를 안내한다', async () => {
+    const user = userEvent.setup();
+    const neverResolves = new Promise<never>(() => {});
+    const api = createFakeApi({
+      getDemo: vi.fn().mockResolvedValue({
+        ...unlinkedJourney,
+        linked: true,
+        guide: null,
+      }),
+      getHospitalGuideCatalog: vi.fn(() => neverResolves),
+      searchHospitalGuidePurpose: vi.fn(() => neverResolves),
+    });
+
+    render(<CaregiverJourneyApp api={api} />);
+
+    await user.click(
+      await screen.findByRole('button', {
+        name: '입원 서류 발급 공식 처리 방법을 확인하세요',
+      }),
+    );
+    await user.click(
+      screen.getByRole('button', { name: '공식 처리 방법 확인' }),
+    );
+    const cancerSecondFloorOption = screen
+      .getByRole('heading', {
+        name: '암병원 2층 원무 수납에서 확인',
+      })
+      .closest('article');
+    expect(cancerSecondFloorOption).not.toBeNull();
+    await user.click(
+      within(cancerSecondFloorOption!).getByRole('button', {
+        name: '이 장소로 안내',
+      }),
+    );
+    await user.click(
+      screen.getByRole('button', {
+        name: '위치·검증 경로 확인',
+      }),
+    );
+
+    expect(
+      screen.getByRole('heading', {
+        name: '원무수납 길찾기',
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('수술환자가족대기실에서 엘리베이터까지'),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId('route-line')).toBeInTheDocument();
+    expect(
+      screen.getByTestId('route-direction-arrow'),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId('route-user-marker')).toBeInTheDocument();
+    expect(screen.getByTestId('route-end-marker')).toBeInTheDocument();
+
+    const zoomButton = screen.getByRole('button', {
+      name: '전체 지도 보기',
+    });
+    await user.click(zoomButton);
+    expect(zoomButton).toHaveAttribute('aria-pressed', 'false');
+
+    await user.click(
+      screen.getByRole('button', {
+        name: '이동 수단에 도착했어요',
+      }),
+    );
+    expect(screen.getByText('3층 → 2층')).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole('button', { name: '2층에 도착했어요' }),
+    );
+    expect(
+      screen.getByText('엘리베이터에서 원무수납까지'),
+    ).toBeInTheDocument();
+    expect(screen.getByText('원무수납')).toBeInTheDocument();
   });
 });
 
