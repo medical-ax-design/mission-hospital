@@ -3,22 +3,12 @@ import type {
   GuideFloor,
 } from '@ready-on/contracts/hospital-guide';
 import { useState } from 'react';
-import { getPrototypeDestinationPoint } from '../hospital-guide-model';
 
 interface FloorDetailScreenProps {
   building: GuideBuilding;
   floor: GuideFloor;
   selectedPlaceId: string | null;
   onNavigate: (placeId: string) => void;
-}
-
-function placeLabel(
-  officialNumber: string | null,
-  officialName: string,
-) {
-  return officialNumber
-    ? `${officialNumber}. ${officialName}`
-    : officialName;
 }
 
 export function FloorDetailScreen({
@@ -31,10 +21,6 @@ export function FloorDetailScreen({
   const selectedPlace = floor.places.find(
     ({ id }) => id === selectedPlaceId,
   );
-  const supportsPrototypeRoute = selectedPlace
-    ? getPrototypeDestinationPoint(floor.code, selectedPlace.id) !==
-      null
-    : false;
 
   return (
     <section className="floor-detail" aria-labelledby="floor-detail-title">
@@ -54,8 +40,8 @@ export function FloorDetailScreen({
             src={floor.mapImageUrl}
           />
           <figcaption>
-            현재는 공식 위치 확인만 제공합니다. 병원이 검증한 복도
-            경로가 등록되기 전에는 임의의 길찾기 선을 표시하지
+            선택한 목적지에 출처가 확인된 경로가 있으면 다음
+            화면에서 층별로 표시합니다. 확인되지 않은 선은 만들지
             않습니다.
           </figcaption>
         </figure>
@@ -85,12 +71,7 @@ export function FloorDetailScreen({
                 {place.id === selectedPlaceId && (
                   <span className="floor-place__badge">찾는 장소</span>
                 )}
-                <strong>
-                  {placeLabel(
-                    place.officialNumber,
-                    place.officialName,
-                  )}
-                </strong>
+                <strong>{place.officialName}</strong>
               </li>
             ))}
           </ul>
@@ -108,9 +89,7 @@ export function FloorDetailScreen({
           onClick={() => onNavigate(selectedPlace.id)}
           type="button"
         >
-          {supportsPrototypeRoute
-            ? '현재 위치 선택하고 길찾기'
-            : '공식 지도에서 위치 확인'}
+          위치·검증 경로 확인
         </button>
       )}
 

@@ -1,8 +1,10 @@
 import {
   HospitalGuideCatalogSchema,
+  VerifiedRouteSchema,
   type GuideBuildingId,
   type GuidePlace,
   type HospitalGuidePurposeResult,
+  type VerifiedRoute,
 } from '@ready-on/contracts/hospital-guide';
 
 const checkedAt = '2026-07-31';
@@ -125,6 +127,9 @@ const placesByFloor: Record<string, GuidePlace[]> = {
     place('cancer-1f-information', '17', '안내데스크', [
       '안내 데스크',
     ]),
+  ],
+  'CANCER:2F': [
+    place('cancer-2f-payment', '07', '원무수납', ['원무', '수납']),
   ],
   'CANCER:3F': [
     place(
@@ -303,10 +308,93 @@ export const officialHospitalGuideCatalog =
             sourceUrl: certificateSource,
             sourceStatus: 'OFFICIAL_PUBLIC',
           },
+          {
+            id: 'document-onsite-cancer-2f',
+            channel: 'ONSITE',
+            placeId: 'cancer-2f-payment',
+            title: '암병원 2층 원무 수납에서 확인',
+            requiredItems: caregiverRequiredItems,
+            orderedSteps: onsiteSteps,
+            sourceUrl: certificateSource,
+            sourceStatus: 'OFFICIAL_PUBLIC',
+          },
         ],
       },
     ],
   });
+
+interface OfficialHospitalGuideRoute {
+  destinationPlaceId: string;
+  originPlaceId: string;
+  route: VerifiedRoute;
+}
+
+const officialHospitalGuideRoutes: OfficialHospitalGuideRoute[] = [
+  {
+    originPlaceId: 'cancer-3f-surgery-family-waiting',
+    destinationPlaceId: 'cancer-2f-payment',
+    route: VerifiedRouteSchema.parse({
+      status: 'VERIFIED',
+      sourceStatus: 'OFFICIAL_PUBLIC',
+      sourceCheckedAt: checkedAt,
+      sourceUrls: [
+        'https://www.samsunghospital.com/_newhome/info/guide/cancer/3F.html',
+        'https://www.samsunghospital.com/_newhome/info/guide/cancer/2F.html',
+      ],
+      segments: [
+        {
+          kind: 'WALK',
+          floorKey: 'CANCER:3F',
+          label: '수술환자가족대기실에서 엘리베이터까지',
+          startNodeId: 'cancer-3f-surgery-family-waiting',
+          endNodeId: 'cancer-3f-center-left-elevator',
+          points: [
+            [36.89, 21.18],
+            [34.92, 22.3],
+            [32.12, 21.74],
+          ],
+        },
+        {
+          kind: 'VERTICAL',
+          mode: 'ELEVATOR',
+          fromFloorKey: 'CANCER:3F',
+          toFloorKey: 'CANCER:2F',
+          entryNodeId: 'cancer-3f-center-left-elevator',
+          exitNodeId: 'cancer-2f-center-left-elevator',
+          entryPoint: [32.12, 21.74],
+          exitPoint: [32.82, 25.81],
+          bankId: 'cancer-center-left',
+        },
+        {
+          kind: 'WALK',
+          floorKey: 'CANCER:2F',
+          label: '엘리베이터에서 원무수납까지',
+          startNodeId: 'cancer-2f-center-left-elevator',
+          endNodeId: 'cancer-2f-payment',
+          points: [
+            [32.82, 25.81],
+            [35.06, 27.07],
+            [37.87, 26.37],
+            [39.55, 26.37],
+          ],
+        },
+      ],
+    }),
+  },
+];
+
+export function findOfficialHospitalGuideRoute(
+  originPlaceId: string,
+  destinationPlaceId: string,
+): VerifiedRoute | null {
+  const matched = officialHospitalGuideRoutes.find(
+    (candidate) =>
+      candidate.originPlaceId === originPlaceId &&
+      candidate.destinationPlaceId === destinationPlaceId,
+  );
+
+  return matched ? structuredClone(matched.route) : null;
+}
 
 export function findOfficialHospitalGuidePurpose(
   query: string,

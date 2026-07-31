@@ -45,6 +45,7 @@ Annual Report는 전체 외래·입원, 진료과별 환자, 성별·연령, 병
 - [별관 1층 공식 안내](https://www.samsunghospital.com/_newhome/info/guide/etc/1F.html)
 - [별관 8층 공식 안내](https://www.samsunghospital.com/_newhome/info/guide/etc/8F.html)
 - [암병원 1층 공식 안내도 이미지](https://www.samsunghospital.com/_newhome/ui/home/static/img/info/guide/map/map_cancer_01.png)
+- [암병원 2층 공식 안내](https://www.samsunghospital.com/_newhome/info/guide/cancer/2F.html)
 - [암병원 3층 공식 안내](https://www.samsunghospital.com/_newhome/info/guide/cancer/3F.html)
 - [암병원 11층 공식 안내](https://www.samsunghospital.com/_newhome/info/guide/cancer/11F.html)
 - [양성자치료센터 지하 1층 공식 안내](https://www.samsunghospital.com/_newhome/info/guide/proton/B1F.html)
@@ -61,13 +62,13 @@ Annual Report는 전체 외래·입원, 진료과별 환자, 성별·연령, 병
 1층 내시경실·원무수납, 암병원 3층 수술환자가족대기실 등을
 구조화했다.
 
-공개 층별 안내 이미지만으로는 복도의 이동 가능 영역, 정확한
-엘리베이터 입구·출구, 공사로 인한 폐쇄와 경로 좌표를 검증할 수
-없다. 운영 화면은 공개자료만으로 경로선을 합성하지 않는다. 발표
-프로토타입의 암병원 1층 경로는 공식 이미지 위에 직접 작성한 시연
-복도 그래프이며 화면에서 현장 검증 필요 상태를 표시한다. 실제
-길찾기 선은 병원이 승인한 2D 평면, 복도 노드, 승강기 입·출구와
-지도 버전이 함께 제공될 때만 운영 경로로 노출한다.
+공개 층별 안내만으로 모든 복도, 통제구역, 임시 폐쇄와 승강기 운행
+조건을 검증할 수는 없다. 현재 프로토타입은 2026-07-31 공식
+암병원 3층·2층 안내도에서 수술환자가족대기실, 같은 위치의 승강기,
+2층 원무수납과 그 사이 공개 복도를 직접 대조한 한 경로만
+`OFFICIAL_PUBLIC`으로 제공한다. 이 경로는 병원 내부 운영 그래프가
+승인한 `HOSPITAL_VERIFIED` 경로와 구분한다. 그 밖의 목적지는
+공식 지도와 시설 위치만 표시한다.
 
 제증명 발급 안내에서 온라인·모바일 발급 가능 여부, 최초 발급 제한과
 보호자 신청 시 구비서류를 확인했다. 실제 발급 가능 여부와 준비물은

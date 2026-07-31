@@ -8,6 +8,7 @@ import type {
 } from '@ready-on/contracts/hospital-guide';
 import {
   findOfficialHospitalGuidePurpose,
+  findOfficialHospitalGuideRoute,
   officialHospitalGuideCatalog,
 } from '@ready-on/contracts/official-hospital-guide';
 import type {
@@ -304,14 +305,22 @@ export function CaregiverJourneyApp({
     );
 
     if (building && floor && destination) {
+      const originPlaceId =
+        journey.scenarioId === 'gastric-surgery'
+          ? 'cancer-3f-surgery-family-waiting'
+          : null;
+      const verifiedRoute = originPlaceId
+        ? findOfficialHospitalGuideRoute(originPlaceId, destination.id)
+        : null;
+
       return (
         <SafeNavigationScreen
           buildingName={building.name}
           destination={destination}
           floors={building.floors}
           onBack={() => setView('hospital-directory')}
-          route={getRouteAvailability(floor, null)}
-          startFloorCode={floor.code}
+          route={getRouteAvailability(floor, verifiedRoute)}
+          startFloorCode={verifiedRoute ? '3F' : floor.code}
         />
       );
     }

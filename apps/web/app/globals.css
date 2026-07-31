@@ -921,7 +921,7 @@ button:focus-visible {
 }
 
 .verified-floor-route--zoomed .verified-floor-route__canvas {
-  width: 170%;
+  width: 220%;
 }
 
 .verified-floor-route__canvas img {
@@ -939,7 +939,7 @@ button:focus-visible {
 
 .verified-floor-route__overlay polyline {
   stroke: #e62525;
-  stroke-width: 2.3;
+  stroke-width: 0.9;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
@@ -970,6 +970,20 @@ button:focus-visible {
 
 .verified-route-user--static {
   display: none;
+}
+
+.route-map-label {
+  paint-order: stroke;
+  fill: #17231f;
+  stroke: #fff;
+  stroke-linejoin: round;
+  stroke-width: 0.5px;
+  font-size: 1.7px;
+  font-weight: 800;
+}
+
+.route-map-label--destination {
+  fill: var(--green);
 }
 
 .verified-floor-route figcaption {

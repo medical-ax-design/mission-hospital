@@ -150,7 +150,9 @@ export const EscalatorTransitionSegmentSchema = z.object({
 
 export const VerifiedRouteSchema = z.object({
   status: z.literal('VERIFIED'),
-  sourceStatus: z.literal('HOSPITAL_VERIFIED'),
+  sourceStatus: z.enum(['HOSPITAL_VERIFIED', 'OFFICIAL_PUBLIC']),
+  sourceCheckedAt: z.iso.date().optional(),
+  sourceUrls: z.array(z.url()).min(1).optional(),
   segments: z
     .array(
       z.union([
