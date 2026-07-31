@@ -444,28 +444,11 @@ export function CaregiverJourneyApp({
     <CaregiverHomeScreen
       journey={journey}
       guidance={guidance}
-      busy={busy}
-      demoMode={demoMode}
       onOpenProgress={() => setView('progress')}
       onOpenTask={() => openHospitalPurpose('서류 발급', 'home')}
       onOpenRestrictions={() => setView('restrictions')}
       onOpenPurpose={(query) => openHospitalPurpose(query, 'home')}
       onSelectTab={(tab: RootTab) => setView(tab)}
-      onSelectScenario={(scenarioId) => {
-        setBusy(true);
-        void api
-          .selectScenario(scenarioId)
-          .then((nextJourney) => {
-            setJourney(nextJourney);
-            setGuidance(null);
-            setSearchResult(null);
-            setQuestions([]);
-            setActionError(null);
-            setView('home');
-          })
-          .catch(() => setError(true))
-          .finally(() => setBusy(false));
-      }}
     />
   );
 }

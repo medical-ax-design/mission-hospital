@@ -17,7 +17,7 @@ describe('CaregiverJourneyService', () => {
 
     expect(result.linked).toBe(true);
     expect(result.treatment.stage).toBe('PREPARING');
-    expect(result.schedules).toHaveLength(3);
+    expect(result.schedules).toHaveLength(6);
   });
 
   it('보호자 업무를 완료한다', async () => {

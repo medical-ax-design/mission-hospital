@@ -64,6 +64,36 @@ const unlinkedJourney: CaregiverJourney = {
       preparation: ['보호자 대기 장소를 확인해 주세요.'],
     },
     {
+      id: 'schedule-postoperative-exam',
+      type: 'EXAM',
+      title: '수술 후 상태 확인',
+      startsAt: '2026-07-31T00:00:00.000Z',
+      building: 'CANCER',
+      floor: '10F',
+      location: '입원 병동',
+      preparation: ['병동 의료진의 검사 안내를 확인해 주세요.'],
+    },
+    {
+      id: 'schedule-recovery-round',
+      type: 'APPOINTMENT',
+      title: '회복 상태 상담',
+      startsAt: '2026-08-01T01:00:00.000Z',
+      building: 'CANCER',
+      floor: '10F',
+      location: '입원 병동',
+      preparation: ['보호자가 확인할 질문을 정리해 주세요.'],
+    },
+    {
+      id: 'schedule-discharge-guidance',
+      type: 'ADMIN',
+      title: '퇴원 수속 안내',
+      startsAt: '2026-08-03T01:00:00.000Z',
+      building: 'MAIN',
+      floor: '1F',
+      location: '입퇴원 수속',
+      preparation: ['퇴원 안내문과 수납 방법을 확인해 주세요.'],
+    },
+    {
       id: 'schedule-follow-up',
       type: 'APPOINTMENT',
       title: '퇴원 후 외래 진료',
@@ -335,6 +365,11 @@ describe('CaregiverJourneyApp', () => {
     unmount();
     sessionStorage.clear();
     render(<CaregiverJourneyApp api={api} demoMode />);
+    expect(
+      screen.queryByRole('complementary', {
+        name: '발표자 도구',
+      }),
+    ).not.toBeInTheDocument();
     await user.click(
       await screen.findByRole('button', { name: '과정 알아보기' }),
     );
@@ -483,6 +518,20 @@ describe('CaregiverJourneyApp', () => {
         name: '30일, 김정우 환자 일정 2개',
       }),
     ).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole('button', { name: '31일 금, 일정 1개' }),
+    );
+    expect(screen.getByText('수술 후 상태 확인')).toBeInTheDocument();
+    expect(screen.getByText('병동 의료진의 검사 안내를 확인해 주세요.'))
+      .toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole('button', { name: '1일 토, 일정 1개' }),
+    );
+    expect(screen.getByText('회복 상태 상담')).toBeInTheDocument();
+    expect(screen.getByText('보호자가 확인할 질문을 정리해 주세요.'))
+      .toBeInTheDocument();
   });
 
   it('대장내시경 여정 홈에서 현재 제한 안내를 연다', async () => {
