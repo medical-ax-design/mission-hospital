@@ -374,17 +374,50 @@ function SegmentedNavigation({
           </section>
         )}
         {notice && (
-          <aside className="prototype-route-notice">
-            <strong>경로 정확도 안내</strong>
-            <p>{notice}</p>
-            {sourceUrls?.map((url, index) => (
-              <p key={url}>
-                <a href={url} rel="noreferrer" target="_blank">
-                  삼성서울병원 공식 {index === 0 ? '출발층' : '도착층'} 안내도
-                </a>
-                {sourceCheckedAt ? ` · 확인 ${sourceCheckedAt}` : ''}
-              </p>
-            ))}
+          <aside
+            className="prototype-route-notice"
+            aria-labelledby="route-source-title"
+          >
+            <div className="prototype-route-notice__heading">
+              <span aria-hidden="true">i</span>
+              <div>
+                <h2 id="route-source-title">경로 정보</h2>
+                <small>삼성서울병원 공식 안내도 기준</small>
+              </div>
+            </div>
+            <p className="prototype-route-notice__description">
+              {notice}
+            </p>
+            {sourceUrls && sourceUrls.length > 0 && (
+              <div
+                className="prototype-route-notice__sources"
+                aria-label="공식 지도 출처"
+              >
+                {sourceUrls.map((url, index) => (
+                  <a
+                    href={url}
+                    key={url}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    <span>
+                      <strong>
+                        {index === 0 ? '출발층' : '도착층'} 안내도
+                      </strong>
+                      <small>삼성서울병원 공식 자료</small>
+                    </span>
+                    <span className="prototype-route-notice__source-meta">
+                      {sourceCheckedAt && (
+                        <time dateTime={sourceCheckedAt}>
+                          {sourceCheckedAt}
+                        </time>
+                      )}
+                      <span aria-hidden="true">↗</span>
+                    </span>
+                  </a>
+                ))}
+              </div>
+            )}
           </aside>
         )}
       </main>
