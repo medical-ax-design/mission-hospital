@@ -26,7 +26,7 @@ describe('caregiver journey API', () => {
     ).journey;
 
     expect(initialJourney.linked).toBe(false);
-    expect(initialJourney.schedules).toHaveLength(3);
+    expect(initialJourney.schedules).toHaveLength(6);
 
     const linked = await request(app.getHttpServer())
       .post('/caregiver-journeys/demo/link')

@@ -1,7 +1,4 @@
-import type {
-  CaregiverJourney,
-  DemoScenarioId,
-} from '@ready-on/contracts/caregiver-journey';
+import type { CaregiverJourney } from '@ready-on/contracts/caregiver-journey';
 import type { RestrictionGuidance } from '@ready-on/contracts/restriction-guidance';
 import { useState } from 'react';
 import { scheduleDateKey } from '../calendar-model';
@@ -15,27 +12,21 @@ import { MobileShell } from './mobile-shell';
 interface CaregiverHomeScreenProps {
   journey: CaregiverJourney;
   guidance: RestrictionGuidance | null;
-  busy: boolean;
-  demoMode: boolean;
   onOpenProgress: () => void;
   onOpenTask: () => void;
   onOpenRestrictions: () => void;
   onOpenPurpose: (query: string) => void;
   onSelectTab: (tab: RootTab) => void;
-  onSelectScenario: (scenarioId: DemoScenarioId) => void;
 }
 
 export function CaregiverHomeScreen({
   journey,
   guidance,
-  busy,
-  demoMode,
   onOpenProgress,
   onOpenTask,
   onOpenRestrictions,
   onOpenPurpose,
   onSelectTab,
-  onSelectScenario,
 }: CaregiverHomeScreenProps) {
   const taskCompleted = journey.task?.status === 'COMPLETED';
   const [purposeQuery, setPurposeQuery] = useState('');
@@ -233,29 +224,6 @@ export function CaregiverHomeScreen({
             <p>{journey.treatment.nextNotice}</p>
           </div>
         </section>
-
-        {demoMode && (
-          <aside className="demo-controls" aria-label="발표자 도구">
-            <div>
-              <strong>발표자 도구</strong>
-              <small>실제 사용자에게는 보이지 않습니다</small>
-            </div>
-            <button
-              disabled={busy}
-              onClick={() => onSelectScenario('gastric-surgery')}
-              type="button"
-            >
-              위암 수술 여정
-            </button>
-            <button
-              disabled={busy}
-              onClick={() => onSelectScenario('morning-colonoscopy')}
-              type="button"
-            >
-              대장내시경 여정
-            </button>
-          </aside>
-        )}
 
         <p className="source-note">
           상태 정보는 병원 시스템에서 확인된 내용만 표시합니다.
