@@ -125,6 +125,21 @@ describe('SafeNavigationScreen', () => {
     ).toHaveAttribute('viewBox', '0 0 100 59.467');
     expect(screen.getByText('현재 위치')).toBeInTheDocument();
     expect(screen.getByText('엘리베이터')).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: '경로 정보' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: /출발층 안내도/ }),
+    ).toHaveAttribute(
+      'href',
+      'https://www.samsunghospital.com/_newhome/info/guide/cancer/3F.html',
+    );
+    expect(
+      screen.getByRole('link', { name: /도착층 안내도/ }),
+    ).toHaveAttribute(
+      'href',
+      'https://www.samsunghospital.com/_newhome/info/guide/cancer/2F.html',
+    );
   });
 
   it('병원이 검증한 에스컬레이터 경로도 입구와 출구에서 선을 끊는다', async () => {

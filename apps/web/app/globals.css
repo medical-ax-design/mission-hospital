@@ -803,22 +803,103 @@ button:focus-visible {
 }
 
 .prototype-route-notice {
-  margin: 0 0 18px;
-  padding: 15px 16px;
-  border: 1px solid #f0dca4;
-  border-radius: 15px;
-  color: #654d19;
-  background: #fff9e8;
+  margin: 4px 0 18px;
+  padding: 18px;
+  border: 1px solid #dce7e2;
+  border-radius: 20px;
+  color: var(--ink);
+  background: #f7faf9;
+  box-shadow: 0 8px 24px rgb(20 49 39 / 6%);
 }
 
-.prototype-route-notice strong {
-  font-size: 13px;
+.prototype-route-notice__heading {
+  display: flex;
+  align-items: center;
+  gap: 11px;
 }
 
-.prototype-route-notice p {
-  margin: 5px 0 0;
+.prototype-route-notice__heading > span {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--green);
+  background: var(--mint);
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.prototype-route-notice__heading > div {
+  display: grid;
+  gap: 2px;
+}
+
+.prototype-route-notice__heading h2 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.prototype-route-notice__heading small {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.prototype-route-notice__description {
+  margin: 14px 0 0;
+  color: var(--muted);
   font-size: 11px;
-  line-height: 1.55;
+  line-height: 1.65;
+}
+
+.prototype-route-notice__sources {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.prototype-route-notice__sources > a {
+  display: flex;
+  min-height: 54px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 12px;
+  border: 1px solid #dce7e2;
+  border-radius: 13px;
+  color: var(--ink);
+  background: #fff;
+  text-decoration: none;
+}
+
+.prototype-route-notice__sources > a > span:first-child {
+  display: grid;
+  gap: 3px;
+}
+
+.prototype-route-notice__sources strong {
+  font-size: 12px;
+}
+
+.prototype-route-notice__sources small,
+.prototype-route-notice__source-meta {
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.prototype-route-notice__source-meta {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 7px;
+}
+
+.prototype-route-notice__source-meta > span {
+  color: var(--green);
+  font-size: 14px;
+  font-weight: 900;
 }
 
 .verified-walk h2,
