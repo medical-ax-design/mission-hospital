@@ -224,7 +224,7 @@ describe('CaregiverJourneyApp', () => {
     ).toBeInTheDocument();
     expect(screen.getByText('입원 서류 발급')).toBeInTheDocument();
     expect(
-      screen.getByText('공식 처리 방법을 확인하세요'),
+      screen.getByText('암병원 2층 원무수납까지 안내해 드려요'),
     ).toBeInTheDocument();
     expect(screen.queryByText('약 15분')).not.toBeInTheDocument();
     expect(screen.getByText('다음 안내')).toBeInTheDocument();
@@ -249,14 +249,16 @@ describe('CaregiverJourneyApp', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('보호자 업무에서 공식 처리 방법으로 연결하고 임의 경로를 만들지 않는다', async () => {
+  it('보호자 업무에서 공식 지도 기반 길찾기를 바로 연다', async () => {
     const user = userEvent.setup();
+    const neverResolves = new Promise<never>(() => {});
     const api = createFakeApi({
       getDemo: vi.fn().mockResolvedValue({
         ...unlinkedJourney,
         linked: true,
         guide: null,
       }),
+      getHospitalGuideCatalog: vi.fn(() => neverResolves),
     });
 
     render(<CaregiverJourneyApp api={api} />);
@@ -264,25 +266,24 @@ describe('CaregiverJourneyApp', () => {
     await user.click(
       await screen.findByRole('button', { name: /입원 서류 발급/ }),
     );
-    await user.click(screen.getByRole('button', {
-      name: '공식 처리 방법 확인',
-    }));
 
     expect(
       screen.getByRole('heading', {
-        name: '서류 발급',
+        name: '원무수납 길찾기',
       }),
     ).toBeInTheDocument();
-    expect(screen.getAllByRole('article')).toHaveLength(1);
     expect(
-      screen.getByText('암병원 2F · 07. 원무수납'),
+      screen.getByText('수술환자가족대기실에서 엘리베이터까지'),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId('route-line')).toBeInTheDocument();
+    expect(screen.getByTestId('route-user-marker')).toBeInTheDocument();
+    expect(screen.getByTestId('route-end-marker')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: '← 홈으로' }),
     ).toBeInTheDocument();
     expect(
-      screen.queryByRole('button', {
-        name: '전체 건물·층별 안내',
-      }),
+      screen.queryByRole('heading', { name: '서류 발급' }),
     ).not.toBeInTheDocument();
-    expect(screen.queryByTestId('route-line')).not.toBeInTheDocument();
   });
 
   it('병원이 확인한 상태와 일반 과정을 구분해 설명한다', async () => {
@@ -312,43 +313,6 @@ describe('CaregiverJourneyApp', () => {
     expect(
       screen.getByRole('heading', { name: /수술 준비 중/ }),
     ).toBeInTheDocument();
-  });
-
-  it('보호자 업무의 준비물과 공식 서류 처리 방법을 확인한다', async () => {
-    const user = userEvent.setup();
-    const api = createFakeApi({
-      getDemo: vi.fn().mockResolvedValue({
-        ...unlinkedJourney,
-        linked: true,
-      }),
-    });
-
-    render(<CaregiverJourneyApp api={api} />);
-
-    await user.click(
-      await screen.findByRole('button', {
-        name: /입원 서류 발급/,
-      }),
-    );
-
-    expect(
-      screen.getByRole('heading', { name: '입원 서류 발급' }),
-    ).toBeInTheDocument();
-    expect(screen.getByText('보호자 신분증')).toBeInTheDocument();
-
-    await user.click(
-      screen.getByRole('button', { name: '공식 처리 방법 확인' }),
-    );
-
-    expect(
-      screen.getByRole('heading', {
-        name: '서류 발급',
-      }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText('암병원 2층 원무 수납에서 확인'),
-    ).toBeInTheDocument();
-    expect(screen.queryByText('홈페이지에서 발급')).not.toBeInTheDocument();
   });
 
   it('발표 모드 치료 화면에서만 로컬 단계 제어를 제공한다', async () => {
@@ -706,17 +670,13 @@ describe('CaregiverJourneyApp', () => {
     expect(searchRestrictions).toHaveBeenCalledTimes(2);
   });
 
-  it('홈에서 병원 이용 목적을 검색한다', async () => {
+  it('홈에서 서류 발급을 검색하면 길찾기를 바로 연다', async () => {
     const user = userEvent.setup();
-    const searchHospitalGuidePurpose = vi
-      .fn()
-      .mockResolvedValue(documentIssuanceResultFixture);
     const api = createFakeApi({
       getDemo: vi.fn().mockResolvedValue({
         ...unlinkedJourney,
         linked: true,
       }),
-      searchHospitalGuidePurpose,
     });
 
     render(<CaregiverJourneyApp api={api} />);
@@ -731,13 +691,12 @@ describe('CaregiverJourneyApp', () => {
       screen.getByRole('button', { name: '목적 검색' }),
     );
 
-    expect(searchHospitalGuidePurpose).toHaveBeenCalledWith('서류 발급');
     expect(
-      await screen.findByRole('heading', { name: '서류 발급' }),
+      await screen.findByRole('heading', { name: '원무수납 길찾기' }),
     ).toBeInTheDocument();
   });
 
-  it('서류 발급 목적에서 공식 처리 방법을 확인한다', async () => {
+  it('이용 안내의 서류 발급에서 길찾기를 바로 연다', async () => {
     const user = userEvent.setup();
     const api = createFakeApi({
       getDemo: vi.fn().mockResolvedValue({
@@ -763,21 +722,13 @@ describe('CaregiverJourneyApp', () => {
 
     await user.click(screen.getByRole('button', { name: '서류 발급' }));
 
-    expect(api.searchHospitalGuidePurpose).toHaveBeenCalledWith(
-      '서류 발급',
-    );
     expect(
-      await screen.findByRole('heading', { name: '서류 발급' }),
+      await screen.findByRole('heading', { name: '원무수납 길찾기' }),
     ).toBeInTheDocument();
     expect(
-      screen.getByText('암병원 2층 원무 수납에서 확인'),
+      screen.getByText('수술환자가족대기실에서 엘리베이터까지'),
     ).toBeInTheDocument();
-    expect(screen.queryByText('홈페이지에서 발급')).not.toBeInTheDocument();
-    expect(
-      screen.queryByText('본관 원무 수납에서 확인'),
-    ).not.toBeInTheDocument();
-    expect(screen.queryByText(/키오스크|예상 대기/)).not
-      .toBeInTheDocument();
+    expect(screen.getByTestId('route-line')).toBeInTheDocument();
   });
 
   it('이용 안내에서 목적 선택과 전체 층 안내를 구분한다', async () => {
@@ -881,42 +832,6 @@ describe('CaregiverJourneyApp', () => {
     );
   });
 
-  it('서류 발급 방문 장소에서 해당 건물과 층으로 바로 연결한다', async () => {
-    const user = userEvent.setup();
-    const api = createFakeApi({
-      getDemo: vi.fn().mockResolvedValue({
-        ...unlinkedJourney,
-        linked: true,
-        guide: null,
-      }),
-    });
-
-    render(<CaregiverJourneyApp api={api} />);
-    await user.click(
-      await screen.findByRole('button', { name: '이용 안내' }),
-    );
-    await user.click(screen.getByRole('button', { name: '서류 발급' }));
-    await user.click(
-      await screen.findByRole('button', { name: '이 장소로 안내' }),
-    );
-
-    expect(
-      screen.getByRole('heading', { name: '암병원 2층' }),
-    ).toBeInTheDocument();
-    expect(screen.getByText('원무수납')).toBeInTheDocument();
-
-    await user.click(
-      screen.getByRole('button', {
-        name: '위치·검증 경로 확인',
-      }),
-    );
-    expect(
-      screen.getByRole('heading', {
-        name: '원무수납 길찾기',
-      }),
-    ).toBeInTheDocument();
-  });
-
   it('병원 안내 API가 응답하지 않아도 입원 서류 발급 길찾기를 연다', async () => {
     const user = userEvent.setup();
     const neverResolves = new Promise<never>(() => {});
@@ -927,34 +842,13 @@ describe('CaregiverJourneyApp', () => {
         guide: null,
       }),
       getHospitalGuideCatalog: vi.fn(() => neverResolves),
-      searchHospitalGuidePurpose: vi.fn(() => neverResolves),
     });
 
     render(<CaregiverJourneyApp api={api} />);
 
     await user.click(
       await screen.findByRole('button', {
-        name: '입원 서류 발급 공식 처리 방법을 확인하세요',
-      }),
-    );
-    await user.click(
-      screen.getByRole('button', { name: '공식 처리 방법 확인' }),
-    );
-
-    expect(
-      await screen.findByRole('heading', { name: '서류 발급' }),
-    ).toBeInTheDocument();
-
-    await user.click(
-      screen.getAllByRole('button', { name: '이 장소로 안내' })[0]!,
-    );
-    expect(
-      screen.getByRole('heading', { name: '암병원 2층' }),
-    ).toBeInTheDocument();
-
-    await user.click(
-      screen.getByRole('button', {
-        name: '위치·검증 경로 확인',
+        name: '입원 서류 발급 암병원 2층 원무수납까지 안내해 드려요',
       }),
     );
     expect(
@@ -975,33 +869,13 @@ describe('CaregiverJourneyApp', () => {
         guide: null,
       }),
       getHospitalGuideCatalog: vi.fn(() => neverResolves),
-      searchHospitalGuidePurpose: vi.fn(() => neverResolves),
     });
 
     render(<CaregiverJourneyApp api={api} />);
 
     await user.click(
       await screen.findByRole('button', {
-        name: '입원 서류 발급 공식 처리 방법을 확인하세요',
-      }),
-    );
-    await user.click(
-      screen.getByRole('button', { name: '공식 처리 방법 확인' }),
-    );
-    const cancerSecondFloorOption = screen
-      .getByRole('heading', {
-        name: '암병원 2층 원무 수납에서 확인',
-      })
-      .closest('article');
-    expect(cancerSecondFloorOption).not.toBeNull();
-    await user.click(
-      within(cancerSecondFloorOption!).getByRole('button', {
-        name: '이 장소로 안내',
-      }),
-    );
-    await user.click(
-      screen.getByRole('button', {
-        name: '위치·검증 경로 확인',
+        name: '입원 서류 발급 암병원 2층 원무수납까지 안내해 드려요',
       }),
     );
 
