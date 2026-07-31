@@ -1,11 +1,7 @@
 'use client';
 
 import type { CaregiverJourney } from '@ready-on/contracts/caregiver-journey';
-import type {
-  GuideBuildingId,
-  HospitalGuideCatalog,
-  HospitalGuidePurposeResult,
-} from '@ready-on/contracts/hospital-guide';
+import type { HospitalGuideCatalog } from '@ready-on/contracts/hospital-guide';
 import {
   findOfficialHospitalGuidePurpose,
   findOfficialHospitalGuideRoute,
@@ -22,7 +18,6 @@ import {
   type CaregiverJourneyApi,
 } from './api';
 import { CaregiverHomeScreen } from './components/caregiver-home-screen';
-import { CaregiverTaskScreen } from './components/caregiver-task-screen';
 import type { RootTab } from './components/bottom-navigation';
 import { MobileShell } from './components/mobile-shell';
 import { PatientLinkScreen } from './components/patient-link-screen';
@@ -32,7 +27,6 @@ import { SavedQuestionsScreen } from './components/saved-questions-screen';
 import { ScheduleScreen } from './components/schedule-screen';
 import { TreatmentProgressScreen } from './components/treatment-progress-screen';
 import { HospitalGuideHomeScreen } from '../hospital-guide/components/hospital-guide-home-screen';
-import { PurposeResultScreen } from '../hospital-guide/components/purpose-result-screen';
 import {
   BuildingDirectoryScreen,
   type HospitalGuideTarget,
@@ -43,11 +37,9 @@ import { getRouteAvailability } from '../hospital-guide/hospital-guide-model';
 type JourneyView =
   | 'home'
   | 'progress'
-  | 'task'
   | 'schedule'
   | 'service-guide'
   | 'profile'
-  | 'hospital-purpose'
   | 'hospital-directory'
   | 'safe-navigation'
   | 'restrictions'
@@ -77,14 +69,17 @@ export function CaregiverJourneyApp({
   const [actionError, setActionError] = useState<string | null>(null);
   const [hospitalCatalog, setHospitalCatalog] =
     useState<HospitalGuideCatalog>(officialHospitalGuideCatalog);
-  const [hospitalPurpose, setHospitalPurpose] =
-    useState<HospitalGuidePurposeResult | null>(null);
   const [hospitalGuideTarget, setHospitalGuideTarget] =
     useState<HospitalGuideTarget | null>(null);
   const [hospitalDirectoryBackView, setHospitalDirectoryBackView] =
     useState<JourneyView>('service-guide');
+  const [safeNavigationBackView, setSafeNavigationBackView] =
+    useState<JourneyView>('home');
 
-  const openHospitalPurpose = (query: string) => {
+  const openHospitalPurpose = (
+    query: string,
+    backView: JourneyView = 'home',
+  ) => {
     setActionError(null);
     const result = findOfficialHospitalGuidePurpose(query);
 
@@ -93,15 +88,23 @@ export function CaregiverJourneyApp({
       return;
     }
 
-    setHospitalPurpose(result);
-    setView('hospital-purpose');
+    const destination = result.places.find(
+      ({ place }) => place.id === 'cancer-2f-payment',
+    );
 
-    void api
-      .searchHospitalGuidePurpose(query)
-      .then(setHospitalPurpose)
-      .catch(() => {
-        // 배포 API가 잠시 응답하지 않아도 검증된 공개 안내를 유지한다.
-      });
+    if (!destination) {
+      setActionError('공식 지도에서 안내 장소를 찾지 못했습니다.');
+      return;
+    }
+
+    setHospitalCatalog(officialHospitalGuideCatalog);
+    setHospitalGuideTarget({
+      buildingId: destination.buildingId,
+      floorCode: destination.floorCode,
+      placeId: destination.place.id,
+    });
+    setSafeNavigationBackView(backView);
+    setView('safe-navigation');
   };
 
   const loadJourney = useCallback(async () => {
@@ -207,16 +210,6 @@ export function CaregiverJourneyApp({
     );
   }
 
-  if (view === 'task') {
-    return (
-      <CaregiverTaskScreen
-        journey={journey}
-        onHome={() => setView('home')}
-        onStartGuide={() => openHospitalPurpose('서류 발급')}
-      />
-    );
-  }
-
   if (view === 'schedule') {
     return (
       <ScheduleScreen
@@ -232,7 +225,9 @@ export function CaregiverJourneyApp({
         catalog={hospitalCatalog}
         guidance={guidance}
         busy={busy}
-        onOpenPurpose={openHospitalPurpose}
+        onOpenPurpose={(query) =>
+          openHospitalPurpose(query, 'service-guide')
+        }
         onOpenDirectory={() => {
           setHospitalGuideTarget(null);
           setHospitalDirectoryBackView('service-guide');
@@ -253,28 +248,6 @@ export function CaregiverJourneyApp({
     );
   }
 
-  if (view === 'hospital-purpose' && hospitalPurpose) {
-    return (
-      <PurposeResultScreen
-        result={hospitalPurpose}
-        onBack={() => setView('service-guide')}
-        onOpenPlace={(
-          buildingId: GuideBuildingId,
-          floorCode: string,
-          placeId: string,
-        ) => {
-          setHospitalGuideTarget({
-            buildingId,
-            floorCode,
-            placeId,
-          });
-          setHospitalDirectoryBackView('hospital-purpose');
-          setView('hospital-directory');
-        }}
-      />
-    );
-  }
-
   if (view === 'hospital-directory' && hospitalCatalog) {
     return (
       <BuildingDirectoryScreen
@@ -283,6 +256,7 @@ export function CaregiverJourneyApp({
         onBack={() => setView(hospitalDirectoryBackView)}
         onNavigate={(target) => {
           setHospitalGuideTarget(target);
+          setSafeNavigationBackView('hospital-directory');
           setView('safe-navigation');
         }}
       />
@@ -315,10 +289,17 @@ export function CaregiverJourneyApp({
 
       return (
         <SafeNavigationScreen
+          backLabel={
+            safeNavigationBackView === 'home'
+              ? '홈으로'
+              : safeNavigationBackView === 'service-guide'
+                ? '이용 안내'
+                : '층별 안내'
+          }
           buildingName={building.name}
           destination={destination}
           floors={building.floors}
-          onBack={() => setView('hospital-directory')}
+          onBack={() => setView(safeNavigationBackView)}
           route={getRouteAvailability(floor, verifiedRoute)}
           startFloorCode={verifiedRoute ? '3F' : floor.code}
         />
@@ -466,9 +447,9 @@ export function CaregiverJourneyApp({
       busy={busy}
       demoMode={demoMode}
       onOpenProgress={() => setView('progress')}
-      onOpenTask={() => setView('task')}
+      onOpenTask={() => openHospitalPurpose('서류 발급', 'home')}
       onOpenRestrictions={() => setView('restrictions')}
-      onOpenPurpose={openHospitalPurpose}
+      onOpenPurpose={(query) => openHospitalPurpose(query, 'home')}
       onSelectTab={(tab: RootTab) => setView(tab)}
       onSelectScenario={(scenarioId) => {
         setBusy(true);

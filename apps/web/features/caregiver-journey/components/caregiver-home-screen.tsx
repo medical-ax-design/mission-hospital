@@ -172,7 +172,7 @@ export function CaregiverHomeScreen({
                 <small>
                   {taskCompleted
                     ? '업무를 완료했습니다'
-                    : '공식 처리 방법을 확인하세요'}
+                    : '암병원 2층 원무수납까지 안내해 드려요'}
                 </small>
               </span>
               <span aria-hidden="true">›</span>

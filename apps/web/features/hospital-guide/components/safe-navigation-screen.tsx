@@ -9,6 +9,7 @@ import { MobileShell } from '../../caregiver-journey/components/mobile-shell';
 import { validateVerifiedRoute } from '../hospital-guide-model';
 
 interface SafeNavigationScreenProps {
+  backLabel?: string;
   buildingName: string;
   destination: GuidePlace;
   floors: GuideFloor[];
@@ -39,6 +40,7 @@ function destinationLabel(destination: GuidePlace) {
 }
 
 function MapOnlyNavigation({
+  backLabel,
   buildingName,
   destination,
   floor,
@@ -46,6 +48,7 @@ function MapOnlyNavigation({
   onBack,
   sourceUrl,
 }: {
+  backLabel: string;
   buildingName: string;
   destination: GuidePlace;
   floor: GuideFloor | undefined;
@@ -57,7 +60,7 @@ function MapOnlyNavigation({
     <MobileShell compactHeader>
       <main className="screen safe-navigation">
         <button className="text-back" onClick={onBack} type="button">
-          ← 층별 안내
+          ← {backLabel}
         </button>
         <p className="eyebrow">경로 검증 전 위치 안내</p>
         <h1 className="page-title">공식 지도에서 위치를 확인하세요</h1>
@@ -107,6 +110,7 @@ function MapOnlyNavigation({
 }
 
 function SegmentedNavigation({
+  backLabel,
   buildingName,
   destinationName,
   floors,
@@ -118,6 +122,7 @@ function SegmentedNavigation({
   sourceUrls,
   walkCaption,
 }: {
+  backLabel: string;
   buildingName: string;
   destinationName: string;
   floors: GuideFloor[];
@@ -150,7 +155,7 @@ function SegmentedNavigation({
     <MobileShell compactHeader>
       <main className="screen safe-navigation">
         <button className="text-back" onClick={onBack} type="button">
-          ← 층별 안내
+          ← {backLabel}
         </button>
         <p className="eyebrow">{routeLabel}</p>
         <h1 className="page-title">{destinationName} 길찾기</h1>
@@ -388,6 +393,7 @@ function SegmentedNavigation({
 }
 
 export function SafeNavigationScreen({
+  backLabel = '층별 안내',
   buildingName,
   destination,
   floors,
@@ -404,6 +410,7 @@ export function SafeNavigationScreen({
         verifiedRoute.sourceStatus === 'HOSPITAL_VERIFIED';
       return (
         <SegmentedNavigation
+          backLabel={backLabel}
           buildingName={buildingName}
           destinationName={destinationLabel(destination)}
           floors={floors}
@@ -434,6 +441,7 @@ export function SafeNavigationScreen({
   if (route.status === 'MAP_ONLY') {
     return (
       <MapOnlyNavigation
+        backLabel={backLabel}
         buildingName={buildingName}
         destination={destination}
         floor={startFloor}
@@ -454,7 +462,7 @@ export function SafeNavigationScreen({
             : '가까운 안내 데스크에 문의해 주세요.'}
         </p>
         <button className="primary-button" onClick={onBack} type="button">
-          층별 안내로 돌아가기
+          {backLabel}로 돌아가기
         </button>
       </main>
     </MobileShell>

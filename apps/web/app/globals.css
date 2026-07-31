@@ -534,76 +534,6 @@ button:focus-visible {
   background: #fff4df;
 }
 
-.hospital-purpose-result {
-  padding-top: 13px;
-}
-
-.hospital-purpose-result > .lead {
-  margin-bottom: 22px;
-}
-
-.purpose-option-list {
-  display: grid;
-  gap: 14px;
-}
-
-.purpose-option {
-  padding: 18px;
-  border: 1px solid var(--line);
-  border-radius: 19px;
-  background: #fff;
-}
-
-.purpose-option__channel {
-  display: inline-flex;
-  min-height: 28px;
-  align-items: center;
-  padding: 0 10px;
-  border-radius: 999px;
-  color: var(--green-dark);
-  background: var(--mint);
-  font-size: 10px;
-  font-weight: 900;
-}
-
-.purpose-option h2 {
-  margin: 10px 0 7px;
-  font-size: 17px;
-}
-
-.purpose-option h3 {
-  margin: 15px 0 7px;
-  font-size: 12px;
-}
-
-.purpose-option ul,
-.purpose-option ol {
-  margin: 0;
-  padding-left: 20px;
-  color: var(--muted);
-  font-size: 11px;
-  line-height: 1.7;
-}
-
-.purpose-option__location {
-  margin: 0;
-  color: var(--green-dark);
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.purpose-option .primary-button {
-  margin-top: 16px;
-}
-
-.purpose-option > a {
-  display: inline-block;
-  margin-top: 13px;
-  color: var(--green);
-  font-size: 10px;
-  font-weight: 800;
-}
-
 .building-directory > .lead {
   margin-bottom: 20px;
 }
@@ -1629,21 +1559,6 @@ h2 {
   margin: 5px 0 0;
   font-size: 11px;
   line-height: 1.55;
-}
-
-.task-meta {
-  display: flex;
-  gap: 8px;
-  margin: -8px 0 24px;
-}
-
-.task-meta span {
-  padding: 7px 11px;
-  border-radius: 999px;
-  color: var(--green-dark);
-  background: var(--mint);
-  font-size: 11px;
-  font-weight: 800;
 }
 
 .destination-card {
@@ -2874,7 +2789,6 @@ body {
 .service-guide-card,
 .hospital-purpose-card,
 .hospital-directory-link,
-.purpose-option,
 .floor-detail,
 .navigation-destination,
 .route-unavailable,
@@ -3544,7 +3458,6 @@ a:focus-visible {
 .treatment-media,
 .hospital-purpose-card,
 .hospital-directory-link,
-.purpose-option,
 .floor-detail,
 .navigation-destination,
 .route-unavailable,
@@ -3761,8 +3674,7 @@ a:focus-visible {
 @media (hover: hover) {
   .action-card:hover,
   .hospital-purpose-card:hover,
-  .hospital-directory-link:hover,
-  .purpose-option:hover {
+  .hospital-directory-link:hover {
     border-color: rgb(8 118 92 / 30%);
     background: #fdfefd;
   }
