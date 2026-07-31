@@ -1041,6 +1041,7 @@ describe('CaregiverJourneyApp', () => {
     ).toBeInTheDocument();
     expect(screen.getByText('원무수납')).toBeInTheDocument();
   });
+
 });
 
 export { createFakeApi, unlinkedJourney };
