@@ -1,23 +1,24 @@
 :root {
   color-scheme: light;
   font-family:
-    "Noto Sans KR", Pretendard, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", sans-serif;
-  --ink: #13231d;
-  --muted: #68766f;
-  --line: #e2e8e5;
+    -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+    "Apple SD Gothic Neo", Pretendard, "Noto Sans KR", "Segoe UI",
+    sans-serif;
+  --ink: #1d1d1f;
+  --muted: #6e6e73;
+  --line: #d2d2d7;
   --paper: #ffffff;
-  --canvas: #e9edf4;
-  --surface: #f7f9fc;
-  --soft: #f3f6f8;
-  --mint: #e4f4ee;
+  --canvas: #f5f5f7;
+  --surface: #fbfbfd;
+  --soft: #f5f5f7;
+  --mint: #e8f4ef;
   --green: #08765c;
-  --green-dark: #075b48;
-  --hero: #0d1c31;
-  --blue: #477ef2;
-  --orange: #e98b28;
-  --shadow: 0 24px 70px rgb(20 40 75 / 14%);
-  --card-shadow: 0 8px 28px rgb(20 40 75 / 7%);
+  --green-dark: #075f4b;
+  --hero: #17231f;
+  --blue: #08765c;
+  --orange: #a55b00;
+  --shadow: none;
+  --card-shadow: none;
 }
 
 * {
@@ -3219,5 +3220,530 @@ body {
   .date-strip button,
   .home-purpose-search button {
     transition: none;
+  }
+}
+
+/* 2026 Wait:ON calm interface */
+
+html,
+body {
+  background: var(--canvas);
+}
+
+body {
+  font-size: 17px;
+  line-height: 1.5;
+  letter-spacing: -0.012em;
+}
+
+button,
+input {
+  letter-spacing: -0.012em;
+}
+
+button:focus-visible,
+input:focus-visible,
+a:focus-visible {
+  outline: 3px solid rgb(8 118 92 / 35%);
+  outline-offset: 3px;
+}
+
+.app-viewport {
+  padding: 24px;
+}
+
+.mobile-shell {
+  min-height: min(900px, calc(100dvh - 48px));
+  overflow: clip;
+  border: 1px solid rgb(0 0 0 / 8%);
+  border-radius: 28px;
+  background: var(--surface);
+  box-shadow: none;
+}
+
+.brand {
+  position: sticky;
+  top: 0;
+  z-index: 12;
+  min-height: 64px;
+  gap: 10px;
+  padding: 12px 20px;
+  border-bottom: 1px solid rgb(0 0 0 / 7%);
+  color: var(--ink);
+  background: rgb(251 251 253 / 84%);
+  backdrop-filter: saturate(180%) blur(20px);
+}
+
+.brand--compact {
+  padding-bottom: 12px;
+}
+
+.brand__mark {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: var(--green);
+  box-shadow: none;
+  font-size: 17px;
+}
+
+.brand strong {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+}
+
+.brand span {
+  color: var(--muted);
+}
+
+.screen {
+  padding: 26px 22px 38px;
+  background: var(--surface);
+}
+
+.screen--home {
+  padding: 0 22px 38px;
+}
+
+.screen--with-navigation {
+  padding-bottom: 112px;
+}
+
+.root-page-header,
+.subpage-heading {
+  margin-bottom: 28px;
+}
+
+.root-page-header h1,
+.subpage-heading h1,
+.page-title {
+  color: var(--ink);
+  font-weight: 650;
+  line-height: 1.12;
+  letter-spacing: -0.052em;
+}
+
+.root-page-header h1 {
+  font-size: clamp(30px, 8vw, 36px);
+}
+
+.page-title {
+  font-size: 34px;
+}
+
+.eyebrow {
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.patient-mini-badge,
+.profile-avatar {
+  border-radius: 50%;
+  box-shadow: none;
+}
+
+.home-hero {
+  margin: 0 -22px 30px;
+  padding: 34px 22px 26px;
+  border: 0;
+  border-radius: 0;
+  color: var(--ink);
+  background: var(--paper);
+}
+
+.home-intro {
+  margin-bottom: 26px;
+}
+
+.home-intro .eyebrow {
+  color: var(--green);
+  font-size: 14px;
+}
+
+.home-intro h1 {
+  margin: 8px 0 12px;
+  color: var(--ink);
+  font-size: clamp(32px, 8.5vw, 40px);
+  font-weight: 650;
+  line-height: 1.16;
+  letter-spacing: -0.055em;
+}
+
+.home-intro h1 strong {
+  color: var(--ink);
+  font-weight: inherit;
+}
+
+.home-intro .patient-line {
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.home-intro .icon-button {
+  border: 1px solid var(--line);
+  color: var(--green);
+  background: var(--paper);
+}
+
+.home-purpose-search {
+  padding: 8px 8px 8px 16px;
+  border: 1px solid rgb(0 0 0 / 8%);
+  border-radius: 18px;
+  background: var(--soft);
+  box-shadow: none;
+}
+
+.home-purpose-search label {
+  margin: 0 0 2px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.home-purpose-search > div {
+  grid-template-columns: 1fr 44px;
+  gap: 8px;
+}
+
+.home-purpose-search input {
+  min-height: 40px;
+  font-size: 16px;
+}
+
+.home-purpose-search button {
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 50%;
+  background: var(--green);
+  font-size: 20px;
+}
+
+.status-hero {
+  margin-bottom: 32px;
+  padding: 24px;
+  border: 0;
+  border-radius: 22px;
+  color: #fff;
+  background: var(--hero);
+  box-shadow: none;
+}
+
+.status-hero::after {
+  height: 3px;
+  margin-top: 22px;
+  background: rgb(255 255 255 / 16%);
+}
+
+.status-hero__meta,
+.status-hero > p {
+  color: rgb(255 255 255 / 66%);
+}
+
+.status-hero .live-indicator {
+  color: #a8e5d0;
+}
+
+.status-hero h1,
+.status-hero h2,
+.status-hero h1 strong,
+.status-hero h2 strong {
+  color: #fff;
+}
+
+.status-hero h1,
+.status-hero h2 {
+  margin-top: 20px;
+  font-size: 25px;
+  font-weight: 650;
+  letter-spacing: -0.04em;
+}
+
+.status-hero .secondary-button--on-dark {
+  border-color: rgb(255 255 255 / 12%);
+  color: #fff;
+  background: rgb(255 255 255 / 10%);
+}
+
+.section-block,
+.home-schedule {
+  margin-top: 34px;
+}
+
+.section-heading h2,
+.home-schedule h2 {
+  font-size: 22px;
+  font-weight: 650;
+  letter-spacing: -0.035em;
+}
+
+.text-button {
+  color: var(--green);
+  font-weight: 650;
+}
+
+.action-card,
+.next-notice,
+.selected-date-card,
+.schedule-card,
+.service-guide-card,
+.verified-status,
+.process-timeline,
+.treatment-media,
+.hospital-purpose-card,
+.hospital-directory-link,
+.purpose-option,
+.floor-detail,
+.navigation-destination,
+.route-unavailable,
+.restriction-card,
+.search-result,
+.question-list li,
+.profile-caregiver-card,
+.linked-patient-card,
+.prototype-location-picker,
+.prototype-route-summary {
+  border: 1px solid rgb(0 0 0 / 8%);
+  border-radius: 18px;
+  background-image: none;
+  box-shadow: none;
+}
+
+.action-card {
+  min-height: 84px;
+  padding: 18px;
+  background: var(--paper);
+}
+
+.action-card__icon {
+  color: var(--green);
+  background: var(--mint);
+}
+
+.action-card__copy strong {
+  font-size: 17px;
+  font-weight: 650;
+}
+
+.home-schedule__list article {
+  min-height: 74px;
+  grid-template-columns: 66px 38px 1fr;
+  padding: 16px 0;
+}
+
+.home-schedule__list time,
+.home-schedule__list strong {
+  font-weight: 650;
+}
+
+.home-schedule__list article > span {
+  color: var(--green);
+  background: var(--mint);
+}
+
+.next-notice,
+.profile-notice {
+  padding: 18px;
+  background: var(--soft);
+}
+
+.primary-button,
+.secondary-button {
+  min-height: 50px;
+  border-radius: 999px;
+  box-shadow: none;
+  font-weight: 650;
+}
+
+.primary-button {
+  background: var(--green);
+}
+
+.secondary-button {
+  border-color: var(--line);
+  color: var(--green);
+  background: var(--paper);
+}
+
+.back-button,
+.text-back {
+  min-height: 44px;
+  padding-right: 8px;
+  padding-left: 8px;
+  border-radius: 10px;
+  color: var(--green);
+  background: transparent;
+}
+
+.selected-date-card {
+  min-height: 120px;
+  padding: 22px;
+  border: 0;
+  color: #fff;
+  background: var(--hero);
+}
+
+.selected-date-card b {
+  color: #d9f5eb;
+  background: rgb(255 255 255 / 10%);
+}
+
+.date-strip button,
+.calendar__header button,
+.calendar-day,
+.calendar-toggle {
+  border-radius: 12px;
+}
+
+.date-strip button[aria-pressed='true'],
+.calendar-day[aria-pressed='true'] {
+  background: var(--green);
+  box-shadow: none;
+}
+
+.calendar,
+.schedule-card {
+  border: 1px solid rgb(0 0 0 / 8%);
+  border-radius: 18px;
+  box-shadow: none;
+}
+
+.schedule-card__type {
+  color: var(--green);
+}
+
+.hospital-purpose-search {
+  padding: 18px;
+  border: 0;
+  border-radius: 18px;
+  color: #fff;
+  background: var(--hero);
+}
+
+.hospital-purpose-search input {
+  border-radius: 12px;
+}
+
+.hospital-purpose-search button {
+  border-radius: 12px;
+  background: var(--green);
+}
+
+.verified-status {
+  border: 0;
+  color: #fff;
+  background: var(--green);
+}
+
+.treatment-media {
+  border-color: rgb(0 0 0 / 8%);
+  background: var(--paper);
+}
+
+.treatment-media__ai-badge {
+  background: var(--green);
+}
+
+.treatment-media__copy strong {
+  color: var(--green);
+}
+
+.profile-caregiver-card,
+.prototype-route-summary {
+  border: 0;
+  color: #fff;
+  background: var(--hero);
+}
+
+.profile-caregiver-card__avatar {
+  border-color: rgb(255 255 255 / 12%);
+}
+
+.linked-patient-card {
+  background: var(--paper);
+}
+
+.prototype-location-picker__options button {
+  border-radius: 12px;
+  background: var(--paper);
+}
+
+.prototype-location-picker__options button[aria-pressed='true'] {
+  box-shadow: none;
+}
+
+.bottom-navigation {
+  min-height: 76px;
+  gap: 4px;
+  padding: 8px 14px calc(8px + env(safe-area-inset-bottom));
+  border-top: 1px solid rgb(0 0 0 / 8%);
+  border-radius: 0 0 27px 27px;
+  background: rgb(251 251 253 / 86%);
+  box-shadow: none;
+  backdrop-filter: saturate(180%) blur(20px);
+}
+
+.bottom-navigation__item {
+  min-height: 58px;
+  border-radius: 14px;
+  color: #737377;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.bottom-navigation__item[aria-current='page'] {
+  color: var(--green);
+  background: transparent;
+}
+
+.bottom-navigation__item[aria-current='page'] > span {
+  border-radius: 999px;
+  background: var(--mint);
+}
+
+@media (hover: hover) {
+  .action-card:hover,
+  .hospital-purpose-card:hover,
+  .hospital-directory-link:hover,
+  .purpose-option:hover {
+    border-color: rgb(8 118 92 / 30%);
+    background: #fdfefd;
+  }
+}
+
+@media (max-width: 720px) {
+  .app-viewport {
+    padding: 0;
+  }
+
+  .mobile-shell {
+    min-height: 100dvh;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .bottom-navigation {
+    border-radius: 0;
+  }
+}
+
+@media (max-width: 360px) {
+  .screen {
+    padding-right: 18px;
+    padding-left: 18px;
+  }
+
+  .screen--home {
+    padding-right: 18px;
+    padding-left: 18px;
+  }
+
+  .home-hero {
+    margin-right: -18px;
+    margin-left: -18px;
+    padding-right: 18px;
+    padding-left: 18px;
   }
 }

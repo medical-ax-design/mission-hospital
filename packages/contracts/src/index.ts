@@ -77,3 +77,8 @@ export {
   type RouteAvailability,
   type VerifiedRoute,
 } from './hospital-guide.js';
+
+export {
+  findOfficialHospitalGuidePurpose,
+  officialHospitalGuideCatalog,
+} from './official-hospital-guide.js';

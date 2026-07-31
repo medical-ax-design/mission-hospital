@@ -2,7 +2,8 @@ import {
   HospitalGuideCatalogSchema,
   type GuideBuildingId,
   type GuidePlace,
-} from '@ready-on/contracts';
+  type HospitalGuidePurposeResult,
+} from '@ready-on/contracts/hospital-guide';
 
 const checkedAt = '2026-07-31';
 const officialGuidePage =
@@ -306,3 +307,42 @@ export const officialHospitalGuideCatalog =
       },
     ],
   });
+
+export function findOfficialHospitalGuidePurpose(
+  query: string,
+): HospitalGuidePurposeResult | null {
+  const normalizedQuery = query.trim().toLocaleLowerCase('ko-KR');
+  if (!normalizedQuery) return null;
+
+  const purpose = officialHospitalGuideCatalog.purposes.find(
+    (candidate) =>
+      candidate.name.toLocaleLowerCase('ko-KR').includes(normalizedQuery) ||
+      candidate.searchTerms.some((term) =>
+        term.toLocaleLowerCase('ko-KR').includes(normalizedQuery),
+      ),
+  );
+  if (!purpose) return null;
+
+  const places = purpose.options.flatMap((option) => {
+    if (!option.placeId) return [];
+
+    for (const building of officialHospitalGuideCatalog.buildings) {
+      for (const floor of building.floors) {
+        const matched = floor.places.find(({ id }) => id === option.placeId);
+        if (matched) {
+          return [
+            {
+              buildingId: building.id,
+              floorCode: floor.code,
+              place: matched,
+            },
+          ];
+        }
+      }
+    }
+
+    return [];
+  });
+
+  return { purpose, places };
+}

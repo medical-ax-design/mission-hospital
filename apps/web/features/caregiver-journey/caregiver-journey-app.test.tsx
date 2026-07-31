@@ -901,6 +901,53 @@ describe('CaregiverJourneyApp', () => {
     ).toBeInTheDocument();
     expect(screen.queryByTestId('route-line')).not.toBeInTheDocument();
   });
+
+  it('병원 안내 API가 응답하지 않아도 입원 서류 발급 길찾기를 연다', async () => {
+    const user = userEvent.setup();
+    const neverResolves = new Promise<never>(() => {});
+    const api = createFakeApi({
+      getDemo: vi.fn().mockResolvedValue({
+        ...unlinkedJourney,
+        linked: true,
+        guide: null,
+      }),
+      getHospitalGuideCatalog: vi.fn(() => neverResolves),
+      searchHospitalGuidePurpose: vi.fn(() => neverResolves),
+    });
+
+    render(<CaregiverJourneyApp api={api} />);
+
+    await user.click(
+      await screen.findByRole('button', {
+        name: '입원 서류 발급 공식 처리 방법을 확인하세요',
+      }),
+    );
+    await user.click(
+      screen.getByRole('button', { name: '공식 처리 방법 확인' }),
+    );
+
+    expect(
+      await screen.findByRole('heading', { name: '서류 발급' }),
+    ).toBeInTheDocument();
+
+    await user.click(
+      screen.getAllByRole('button', { name: '이 장소로 안내' })[0]!,
+    );
+    expect(
+      screen.getByRole('heading', { name: '본관 1층' }),
+    ).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole('button', {
+        name: '공식 지도에서 위치 확인',
+      }),
+    );
+    expect(
+      screen.getByRole('heading', {
+        name: '공식 지도에서 위치를 확인하세요',
+      }),
+    ).toBeInTheDocument();
+  });
 });
 
 export { createFakeApi, unlinkedJourney };
